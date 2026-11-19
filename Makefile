@@ -4,10 +4,12 @@
 #   make test       run the test suite
 #   make check      every local check, the same as CI: run before every push
 #   make selftest   the checks' own tests: each rule broken on purpose must be caught
+#   make claims     the map check: every due claim proven by a test that ran and passed
+#   make summary    claims per milestone
 
 CARGO ?= cargo
 
-.PHONY: all test check selftest fmt clippy arch deny clean
+.PHONY: all test check selftest fmt clippy arch deny claims summary clean
 
 all:
 	$(CARGO) build --workspace --locked
@@ -29,10 +31,18 @@ deny:
 	@if command -v cargo-deny >/dev/null 2>&1; then $(CARGO) deny check; \
 	else echo "cargo-deny not installed: dependency check skipped here, it runs in CI"; fi
 
-check: fmt clippy arch deny test selftest
+# claims runs the test suite itself and reads which tests ran and passed.
+claims:
+	python3 scripts/claims-check.py
+
+summary:
+	python3 scripts/claims-check.py --summary
+
+check: fmt clippy arch deny claims selftest
 
 selftest:
 	sh scripts/arch-check-selftest.sh
+	sh scripts/claims-check-selftest.sh
 
 clean:
 	$(CARGO) clean

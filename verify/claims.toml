@@ -1,0 +1,2594 @@
+# Logbook's claim registry: every claim of every function, with its due
+# milestone, how it is proven and the break its proof must catch.
+#
+# Source of truth for the map check (scripts/claims-check.py, build plan V01).
+# First version generated from the function map of 19 November 2026; from now
+# on edited by hand. A protected file: every change needs the owner's approval
+# (build plan, section 3).
+#
+# Tests prove a claim by their name: a test whose name starts with the claim ID
+# in lower case, dot as underscore (A02.1 -> a02_1_…, G4 -> g4_…), proves it.
+# security = true marks a 🛡 claim: it also needs its own break in
+# verify/breaks/<ID>-<name>.patch (build plan V11).
+
+[registry]
+milestones = ["0.1a", "0.1b", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "1.0"]
+# The milestone being built. "phase0": nothing is due yet.
+current = "phase0"
+proof_kinds = ["CONF", "PROP", "FUZZ", "FAULT", "RUN", "DISTRO", "ORACLE", "DOC", "GUI", "UNIT", "STATIC", "CANARY"]
+
+# ---- functions
+
+[functions."F-A01"]
+name = "Collector service"
+version = "0.1"
+
+[functions."F-A02"]
+name = "Resume where it stopped"
+version = "0.1"
+
+[functions."F-A03"]
+name = "First start: import"
+version = "0.1"
+
+[functions."F-A04"]
+name = "Recognise the system"
+version = "0.1"
+
+[functions."F-A05"]
+name = "Rights and coverage"
+version = "0.1"
+
+[functions."F-A06"]
+name = "Resource limits"
+version = "0.1"
+
+[functions."F-A07"]
+name = "Collector health"
+version = "0.1"
+
+[functions."F-A08"]
+name = "Time handling"
+version = "0.1"
+
+[functions."F-B01"]
+name = "pacman"
+version = "0.1"
+
+[functions."F-B02"]
+name = "apt/dpkg"
+version = "0.1b"
+
+[functions."F-B03"]
+name = "dnf"
+version = "0.1b"
+
+[functions."F-B04"]
+name = "zypper"
+version = "0.1b"
+
+[functions."F-B05"]
+name = "Flatpak"
+version = "0.1b"
+
+[functions."F-B06"]
+name = "Snap"
+version = "0.1b"
+
+[functions."F-B07"]
+name = "System journal"
+version = "0.1"
+
+[functions."F-B08"]
+name = "Boots and shutdowns"
+version = "0.1"
+
+[functions."F-B09"]
+name = "Crashes"
+version = "0.2"
+
+[functions."F-B10"]
+name = "Kernel changes"
+version = "0.1"
+
+[functions."F-B11"]
+name = "GNOME settings"
+version = "0.5"
+
+[functions."F-B12"]
+name = "KDE settings"
+version = "0.5"
+
+[functions."F-B13"]
+name = "Microphone and camera (PipeWire)"
+version = "0.6"
+
+[functions."F-B14"]
+name = "Screen sharing"
+version = "0.6"
+
+[functions."F-B15"]
+name = "Direct camera access"
+version = "0.6"
+
+[functions."F-B16"]
+name = "Battery"
+version = "0.7"
+
+[functions."F-B17"]
+name = "Disk health"
+version = "0.7"
+
+[functions."F-B18"]
+name = "Firmware updates"
+version = "0.2"
+
+[functions."F-B19"]
+name = "Image-based systems"
+version = "0.2"
+
+[functions."F-B20"]
+name = "System snapshots"
+version = "0.2"
+
+[functions."F-C01"]
+name = "Event model"
+version = "0.1"
+
+[functions."F-C02"]
+name = "Pattern library"
+version = "0.1"
+
+[functions."F-C03"]
+name = "Folding repeats"
+version = "0.1"
+
+[functions."F-C04"]
+name = "Grouping updates"
+version = "0.1"
+
+[functions."F-C05"]
+name = "Severity"
+version = "0.1"
+
+[functions."F-C06"]
+name = "\"Happened right after\""
+version = "0.2"
+
+[functions."F-C07"]
+name = "Baselines"
+version = "0.2"
+
+[functions."F-C08"]
+name = "Unrecognised messages"
+version = "0.1"
+
+[functions."F-C09"]
+name = "Program identity"
+version = "0.1 / 0.2"
+
+[functions."F-C10"]
+name = "Plain-language text"
+version = "0.1"
+
+[functions."F-C11"]
+name = "Event updates"
+version = "0.1"
+
+[functions."F-C12"]
+name = "Reprocessing and stable IDs"
+version = "0.1 / 0.2"
+
+[functions."F-D01"]
+name = "Database and migrations"
+version = "0.1"
+
+[functions."F-D02"]
+name = "Retention"
+version = "0.1"
+
+[functions."F-D03"]
+name = "Copies of raw messages"
+version = "0.1"
+
+[functions."F-D04"]
+name = "Writing and reading at the same time"
+version = "0.1"
+
+[functions."F-D05"]
+name = "Size limit"
+version = "0.1"
+
+[functions."F-D06"]
+name = "Export and import"
+version = "0.8"
+
+[functions."F-D07"]
+name = "Forget selectively"
+version = "0.1 / 0.6"
+
+[functions."F-E01"]
+name = "Day mark"
+version = "0.2"
+
+[functions."F-E02"]
+name = "Reason for the mark"
+version = "0.2"
+
+[functions."F-F01"]
+name = "Day strip"
+version = "0.1 / 0.2"
+
+[functions."F-F02"]
+name = "Day view"
+version = "0.1"
+
+[functions."F-F03"]
+name = "Event card"
+version = "0.1 / 0.2"
+
+[functions."F-F04"]
+name = "Lane filters"
+version = "0.1"
+
+[functions."F-F05"]
+name = "Search"
+version = "0.1 / 0.2"
+
+[functions."F-F06"]
+name = "Coverage banner"
+version = "0.1"
+
+[functions."F-F07"]
+name = "Settings"
+version = "0.1"
+
+[functions."F-F08"]
+name = "First start"
+version = "0.1"
+
+[functions."F-F09"]
+name = "Accessibility"
+version = "0.1"
+
+[functions."F-F10"]
+name = "Original messages view"
+version = "0.1"
+
+[functions."F-F11"]
+name = "Opening a report or another logbook"
+version = "0.8"
+
+[functions."F-G01"]
+name = "Assembling a report"
+version = "0.3"
+
+[functions."F-G02"]
+name = "Privacy filter"
+version = "0.3"
+
+[functions."F-G03"]
+name = "Preview with switches"
+version = "0.3"
+
+[functions."F-G04"]
+name = "Output formats"
+version = "0.3 / 0.8"
+
+[functions."F-G05"]
+name = "Viewing a report"
+version = "0.8"
+proven_by = ["F-F11", "F-I06"]
+
+[functions."F-G06"]
+name = "Comparing two reports"
+version = "0.8"
+
+[functions."F-H01"]
+name = "Notification rules"
+version = "0.2"
+
+[functions."F-H02"]
+name = "Limits"
+version = "0.2"
+
+[functions."F-H03"]
+name = "Switches for each kind"
+version = "0.2"
+
+[functions."F-I01"]
+name = "logbook, today"
+version = "0.1"
+
+[functions."F-I02"]
+name = "since"
+version = "0.1"
+
+[functions."F-I03"]
+name = "day"
+version = "0.1"
+
+[functions."F-I04"]
+name = "event <id>"
+version = "0.1"
+
+[functions."F-I05"]
+name = "search"
+version = "0.1"
+
+[functions."F-I06"]
+name = "report, open, diff"
+version = "0.3 / 0.8"
+
+[functions."F-I07"]
+name = "unknown"
+version = "0.1"
+
+[functions."F-I08"]
+name = "status"
+version = "0.1"
+
+[functions."F-I09"]
+name = "forget, doctor, export, import"
+version = "0.1 / 0.8"
+
+[functions."F-I10"]
+name = "mcp"
+version = "0.4"
+
+[functions."F-J01"]
+name = "MCP server"
+version = "0.4"
+
+[functions."F-J02"]
+name = "Released lanes"
+version = "0.4"
+
+[functions."F-J03"]
+name = "Marking data"
+version = "0.4"
+
+[functions."F-J04"]
+name = "Privacy filter for AI"
+version = "0.4"
+
+[functions."F-J05"]
+name = "Read-only, permanently"
+version = "0.4"
+
+[functions."F-J06"]
+name = "Recording access"
+version = "0.4"
+
+[functions."F-J07"]
+name = "Notes for assistants"
+version = "0.4"
+
+[functions."F-K01"]
+name = "Undo a settings change"
+version = "0.5"
+
+[functions."F-L01"]
+name = "Logbook lane"
+version = "0.1"
+
+[functions."F-L02"]
+name = "No network, enforced"
+version = "0.1"
+
+[functions."F-L03"]
+name = "Hardening"
+version = "0.1 / 0.2"
+
+[functions."F-L04"]
+name = "Translations"
+version = "0.1"
+
+[functions."F-L05"]
+name = "Configuration file"
+version = "0.1"
+
+[functions."F-L06"]
+name = "Clean uninstall"
+version = "0.1"
+
+[functions."F-L07"]
+name = "Logbook's own diagnostics"
+version = "0.1"
+
+[functions."F-L08"]
+name = "Function and test map"
+version = "0.1"
+
+[functions."F-L09"]
+name = "`logbook doctor`"
+version = "0.1 / 0.2"
+
+[functions."F-L10"]
+name = "Protecting the store"
+version = "0.1"
+
+[functions."F-L11"]
+name = "Distribution"
+version = "0.1 / 0.2"
+
+[functions."F-L12"]
+name = "Safe output of untrusted text"
+version = "0.1"
+
+[functions."F-B"]
+name = "Rules for every reader"
+version = "0.1"
+
+[functions."F-I"]
+name = "Rules for every command"
+version = "0.1"
+
+[functions.global]
+name = "Global invariants, checked on every conformance case"
+version = "0.1"
+
+# ---- claims
+
+[[claim]]
+id = "G1"
+function = "global"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Determinism: the same input twice gives byte-identical events."
+
+[[claim]]
+id = "G2"
+function = "global"
+due = "0.1a"
+security = false
+proofs = ["CONF", "PROP"]
+text = "Split and resume: the input cut at random points with a restart in between gives the same result as an uninterrupted run."
+
+[[claim]]
+id = "G3"
+function = "global"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Stable IDs: deriving again changes no event ID."
+
+[[claim]]
+id = "G4"
+function = "global"
+due = "0.3"
+security = true
+proofs = ["CONF", "CANARY"]
+text = "No canary appears in any filtered output: report, AI interface, --redact."
+
+[[claim]]
+id = "G5"
+function = "global"
+due = "0.1a"
+security = true
+proofs = ["CONF"]
+text = "No raw control or bidirectional characters in any rendered output."
+
+[[claim]]
+id = "G6"
+function = "global"
+due = "0.4"
+security = true
+proofs = ["CONF"]
+text = "Hostile text appears only in fields marked as untrusted."
+
+[[claim]]
+id = "G7"
+function = "global"
+due = "0.1a"
+security = false
+proofs = ["CONF", "STATIC"]
+text = "All --json and AI-interface output is valid against the versioned schema."
+
+[[claim]]
+id = "G8"
+function = "global"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Every event has a lane, a severity, a template and a text; every problem or serious day has a reason."
+
+[[claim]]
+id = "G9"
+function = "global"
+due = "0.1a"
+security = true
+proofs = ["CONF", "RUN"]
+text = "Read-only commands change nothing: the store files are byte-identical before and after."
+
+[[claim]]
+id = "B00.1"
+function = "F-B"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Every reader: recorded real input gives the expected records."
+
+[[claim]]
+id = "B00.2"
+function = "F-B"
+due = "0.1a"
+security = false
+proofs = ["CONF", "FUZZ"]
+text = "Every reader: unknown lines are counted and never stop the reader."
+
+[[claim]]
+id = "B00.3"
+function = "F-B"
+due = "0.1a"
+security = true
+proofs = ["STATIC", "CONF"]
+text = "No reader writes anything, and none starts a program outside logbook-exec."
+
+[[claim]]
+id = "B00.4"
+function = "F-B"
+due = "0.1a"
+security = false
+proofs = ["FUZZ", "DOC"]
+text = "Every text reader is fuzzed and has a format contract checked by doctor."
+
+[[claim]]
+id = "I00.1"
+function = "F-I"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Every command: normal output, --json and exit code match the approved samples."
+
+[[claim]]
+id = "I00.2"
+function = "F-I"
+due = "0.1a"
+security = false
+proofs = ["STATIC", "CONF"]
+text = "The --json contract holds (schema snapshot)."
+
+[[claim]]
+id = "I00.3"
+function = "F-I"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Exit codes are 0 OK, 1 error, 2 nothing found, 3 partial coverage."
+
+[[claim]]
+id = "I00.4"
+function = "F-I"
+due = "0.1a"
+security = true
+proofs = ["CONF"]
+text = "No raw control characters reach the terminal."
+
+[[claim]]
+id = "I00.5"
+function = "F-I"
+due = "0.3"
+security = true
+proofs = ["CANARY"]
+text = "--redact lets no canary through."
+
+[[claim]]
+id = "I00.6"
+function = "F-I"
+due = "0.1a"
+security = false
+proofs = ["CONF", "RUN"]
+text = "Read-only commands change nothing."
+
+[[claim]]
+id = "A01.1"
+function = "F-A01"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "Starts after login and ends at logout. RUN (real systemd user session in the VM)"
+
+[[claim]]
+id = "A01.2"
+function = "F-A01"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "A second instance ends at once with a clear message. RUN"
+break = "remove the single-instance lock, so two collectors run (A01.2 fails)."
+
+[[claim]]
+id = "A01.3"
+function = "F-A01"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "Switched off, it stays off after the next login. RUN"
+
+[[claim]]
+id = "A02.1"
+function = "F-A02"
+due = "0.1a"
+security = false
+proofs = ["PROP", "FAULT"]
+text = "A restart at any point gives exactly the result of an uninterrupted run. PROP (G2) + FAULT (kill -9 at random write points)"
+break = "save the bookmark outside the event transaction (A02.1 fails with duplicates)."
+
+[[claim]]
+id = "A02.2"
+function = "F-A02"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Rotated files, including `.gz`, are read without gaps. CONF (real rotated `pacman.log` and `dpkg.log`)"
+
+[[claim]]
+id = "A02.3"
+function = "F-A02"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "A bookmark to deleted journal data gives a gap event. CONF (journal recorded before and after cleanup)"
+
+[[claim]]
+id = "A02.4"
+function = "F-A02"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "A file that got shorter is treated as new. CONF"
+
+[[claim]]
+id = "A03.1"
+function = "F-A03"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Recorded history gives the expected events. CONF"
+
+[[claim]]
+id = "A03.2"
+function = "F-A03"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "The progress reaches 100 %. UNIT"
+
+[[claim]]
+id = "A03.3"
+function = "F-A03"
+due = "0.1a"
+security = false
+proofs = ["FAULT"]
+text = "An interrupted, resumed import gives the same result. FAULT"
+break = "the import ignores the bookmark after an interruption (A03.3 fails)."
+
+[[claim]]
+id = "A03.4"
+function = "F-A03"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "The default limit is 90 days of journal. CONF"
+
+[[claim]]
+id = "A04.1"
+function = "F-A04"
+due = "0.1b"
+security = false
+proofs = ["DISTRO", "ORACLE"]
+text = "The right readers are active on Arch, Debian, Ubuntu, Fedora, openSUSE and an image-based system, and no wrong one is. DISTRO + ORACLE (a list of expected readers for each test image)"
+
+[[claim]]
+id = "A04.2"
+function = "F-A04"
+due = "0.1a"
+security = false
+proofs = ["DISTRO"]
+text = "Without systemd: the clear message, and no collector. DISTRO (Alpine or Void container)"
+
+[[claim]]
+id = "A04.3"
+function = "F-A04"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Detection by existence: Flatpak on Ubuntu, Snap on Fedora. CONF (`--source-root` trees)"
+break = "detect by distribution name only (A04.3 fails)."
+
+[[claim]]
+id = "A05.1"
+function = "F-A05"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "With and without journal group membership, the status is right. RUN (two test users in the VM)"
+break = "report \"full\" when only the user's own journal is readable (A05.1 fails)."
+
+[[claim]]
+id = "A05.2"
+function = "F-A05"
+due = "0.1b"
+security = false
+proofs = ["GUI", "UNIT"]
+text = "The banner appears exactly when coverage is partial. UNIT (view model) + GUI"
+
+[[claim]]
+id = "A05.3"
+function = "F-A05"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "A change of rights is recorded. RUN"
+
+[[claim]]
+id = "A06.1"
+function = "F-A06"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "A recorded flood stays below 1 % CPU on average and below 50 MB of memory. RUN (measured in a cgroup, a kernel accounting group)"
+break = "remove the rate limit (A06.1 and A06.3 fail)."
+
+[[claim]]
+id = "A06.2"
+function = "F-A06"
+due = "0.1a"
+security = false
+proofs = ["DOC", "UNIT"]
+text = "The import pauses on battery. UNIT (simulated power state) + DOC (UPower contract)"
+
+[[claim]]
+id = "A06.3"
+function = "F-A06"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "A flood becomes one event. CONF"
+break = "remove the rate limit (A06.1 and A06.3 fail)."
+
+[[claim]]
+id = "A07.1"
+function = "F-A07"
+due = "0.1a"
+security = false
+proofs = ["FAULT"]
+text = "A failing reader doesn't stop the others and appears as an event. FAULT (a reader made to fail and to panic)"
+break = "let a reader error end the collector (A07.1 fails)."
+
+[[claim]]
+id = "A07.2"
+function = "F-A07"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "\"Not recording since …\" appears after a simulated outage. UNIT (simulated clock)"
+
+[[claim]]
+id = "A07.3"
+function = "F-A07"
+due = "0.1b"
+security = false
+proofs = ["RUN"]
+text = "After 5 restarts the window shows the problem. RUN"
+
+[[claim]]
+id = "A08.1"
+function = "F-A08"
+due = "0.1a"
+security = false
+proofs = ["CONF", "PROP", "RUN"]
+text = "Daylight-saving change, clock jump and time-zone change give the correct order. CONF + PROP (random time zones) + RUN (real clock jump)"
+break = "read local time as UTC (A08.1 fails)."
+
+[[claim]]
+id = "A08.2"
+function = "F-A08"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Events before a clock correction are marked \"time uncertain\". CONF"
+
+[[claim]]
+id = "A08.3"
+function = "F-A08"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "The pacman time-zone offset is read correctly. CONF"
+
+[[claim]]
+id = "B01.1"
+function = "F-B01"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "A normal, interrupted and downgrade update, a `.pacnew` and a Shelly transaction give the expected records. CONF (real logs from this machine)"
+break = "treat a transaction without an end line as completed (B01.1 fails: \"interrupted\" missing)."
+
+[[claim]]
+id = "B01.2"
+function = "F-B01"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "The tool is named only when certain (\"a package manager\" for Shelly). CONF"
+
+[[claim]]
+id = "B01.3"
+function = "F-B01"
+due = "0.1a"
+security = false
+proofs = ["DISTRO", "ORACLE"]
+text = "The final versions match `pacman -Q`. ORACLE (DISTRO Arch)"
+
+[[claim]]
+id = "B01.4"
+function = "F-B01"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Snapshot lines are handed on. CONF"
+
+[[claim]]
+id = "B02.1"
+function = "F-B02"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Debian 13, Ubuntu 24.04 and 26.04 samples give the expected records. CONF"
+break = "skip rotated `.gz` files (B02.1 fails)."
+
+[[claim]]
+id = "B02.2"
+function = "F-B02"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Automatic security updates are labelled; remove and purge are separate. CONF"
+
+[[claim]]
+id = "B02.3"
+function = "F-B02"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Updates through PackageKit are recognised (`VERIFY`). CONF"
+
+[[claim]]
+id = "B02.4"
+function = "F-B02"
+due = "0.1b"
+security = false
+proofs = ["DISTRO", "ORACLE"]
+text = "The final state matches `dpkg-query`. ORACLE (DISTRO)"
+
+[[claim]]
+id = "B03.1"
+function = "F-B03"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "dnf4 and dnf5 samples give the expected records. CONF"
+
+[[claim]]
+id = "B03.2"
+function = "F-B03"
+due = "0.1b"
+security = false
+proofs = ["RUN", "UNIT"]
+text = "`--json` first; the database is only a fallback and is opened read-only (its file is byte-identical afterwards). UNIT + RUN"
+break = "open the database read-write (B03.2 fails)."
+
+[[claim]]
+id = "B03.3"
+function = "F-B03"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "A system with both formats gives no duplicates. CONF"
+
+[[claim]]
+id = "B03.4"
+function = "F-B03"
+due = "0.1b"
+security = false
+proofs = ["DISTRO", "ORACLE"]
+text = "Matches `dnf5 history list --json`. ORACLE (DISTRO Fedora)"
+
+[[claim]]
+id = "B04.1"
+function = "F-B04"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Samples give the expected records; `zypper dup` is one transaction. CONF"
+
+[[claim]]
+id = "B04.2"
+function = "F-B04"
+due = "0.1b"
+security = false
+proofs = ["RUN"]
+text = "Without read rights: \"not available\", with the reason. RUN"
+
+[[claim]]
+id = "B04.3"
+function = "F-B04"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "The path from `zypp.conf` is followed. CONF"
+break = "ignore the path in `zypp.conf` (B04.3 fails)."
+
+[[claim]]
+id = "B05.1"
+function = "F-B05"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Journal recordings with the message ID give the expected records, user and system-wide. CONF"
+break = "drop system-wide entries (B05.1 and B05.3 fail)."
+
+[[claim]]
+id = "B05.2"
+function = "F-B05"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Runtimes are separate from apps. CONF"
+
+[[claim]]
+id = "B05.3"
+function = "F-B05"
+due = "0.1b"
+security = false
+proofs = ["DISTRO", "ORACLE"]
+text = "Matches `flatpak history`. ORACLE (DISTRO)"
+break = "drop system-wide entries (B05.1 and B05.3 fail)."
+
+[[claim]]
+id = "B06.1"
+function = "F-B06"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Recorded `snap changes` output gives the expected records, with auto-refresh labelled. CONF"
+
+[[claim]]
+id = "B06.2"
+function = "F-B06"
+due = "0.1b"
+security = false
+proofs = ["UNIT"]
+text = "Checked every hour. UNIT (simulated clock)"
+break = "check once a day (B06.2 fails)."
+
+[[claim]]
+id = "B06.3"
+function = "F-B06"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Coverage says \"only since Logbook started\". CONF"
+
+[[claim]]
+id = "B06.4"
+function = "F-B06"
+due = "0.1b"
+security = false
+proofs = ["DISTRO", "ORACLE"]
+text = "Matches `snap changes`. ORACLE (DISTRO Ubuntu)"
+
+[[claim]]
+id = "B07.1"
+function = "F-B07"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "A normal day, a failed service, a kernel error and sleep/wake give the expected records. CONF (real journal files through `journalctl -D`)"
+
+[[claim]]
+id = "B07.2"
+function = "F-B07"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Info messages without a pattern are dropped. CONF"
+break = "hand on all priorities (B07.2 fails and the store grows)."
+
+[[claim]]
+id = "B07.3"
+function = "F-B07"
+due = "0.1a"
+security = false
+proofs = ["DISTRO"]
+text = "A journal kept only in memory is reported in the coverage. DISTRO"
+
+[[claim]]
+id = "B07.4"
+function = "F-B07"
+due = "0.1a"
+security = false
+proofs = ["FAULT"]
+text = "Damaged journal files become a gap. FAULT"
+
+[[claim]]
+id = "B07.5"
+function = "F-B07"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "Live reading follows changes without polling. RUN"
+
+[[claim]]
+id = "B08.1"
+function = "F-B08"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Normal, abrupt and sleep sequences are recognised. CONF"
+
+[[claim]]
+id = "B08.2"
+function = "F-B08"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Waking from sleep is not a boot. CONF"
+break = "count waking as a boot (B08.2 fails)."
+
+[[claim]]
+id = "B08.3"
+function = "F-B08"
+due = "0.1a"
+security = false
+proofs = ["ORACLE"]
+text = "Matches `journalctl --list-boots`. ORACLE"
+
+[[claim]]
+id = "B09.1"
+function = "F-B09"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Recorded crash entries give the expected records. CONF"
+
+[[claim]]
+id = "B09.2"
+function = "F-B09"
+due = "0.2"
+security = true
+proofs = ["RUN"]
+text = "Memory snapshot files are **never opened**. RUN: an open-watch (fanotify, the kernel's file-access notification) on the coredump folder reports any open by a Logbook process. Plus the Landlock rule: the coredump folder is not in the collector's allowed paths."
+break = "read the core file to get a backtrace (B09.2 fails)."
+
+[[claim]]
+id = "B09.3"
+function = "F-B09"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Flatpak and sandbox paths (`/opt/app/…`) are resolved. CONF"
+
+[[claim]]
+id = "B09.4"
+function = "F-B09"
+due = "0.2"
+security = false
+proofs = ["DISTRO"]
+text = "Without systemd-coredump: \"not available\", with the reason. DISTRO"
+
+[[claim]]
+id = "B10.1"
+function = "F-B10"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Update, switch and return to the old kernel give the right records. CONF"
+
+[[claim]]
+id = "B10.2"
+function = "F-B10"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "\"Installed\" and \"running\" are distinguished. CONF"
+break = "treat a kernel package update as a running change (B10.2 fails)."
+
+[[claim]]
+id = "B11.1"
+function = "F-B11"
+due = "0.5"
+security = false
+proofs = ["RUN"]
+text = "A change gives a record with the old and new value. RUN (real dconf in a GNOME session)"
+break = "take the \"old value\" from the current value (B11.1 fails)."
+
+[[claim]]
+id = "B11.2"
+function = "F-B11"
+due = "0.5"
+security = false
+proofs = ["CONF"]
+text = "Filtered keys give no record. CONF"
+
+[[claim]]
+id = "B11.3"
+function = "F-B11"
+due = "0.5"
+security = false
+proofs = ["RUN"]
+text = "Changes while Logbook was off are found and marked. RUN"
+
+[[claim]]
+id = "B11.4"
+function = "F-B11"
+due = "0.5"
+security = false
+proofs = ["RUN"]
+text = "500 changes at once become one event. RUN"
+
+[[claim]]
+id = "B12.1"
+function = "F-B12"
+due = "0.5"
+security = false
+proofs = ["RUN"]
+text = "As B11.1 to B11.4, on KDE. RUN (real KDE session)"
+
+[[claim]]
+id = "B12.2"
+function = "F-B12"
+due = "0.5"
+security = false
+proofs = ["PROP"]
+text = "A file rewritten with the same content gives no record (comparison at key level). PROP"
+break = "compare at file level (B12.2 fails)."
+
+[[claim]]
+id = "B13.1"
+function = "F-B13"
+due = "0.6"
+security = false
+proofs = ["RUN"]
+text = "A test program that opens and closes the microphone gives a record with times accurate to 1 s. RUN (real PipeWire)"
+
+[[claim]]
+id = "B13.2"
+function = "F-B13"
+due = "0.6"
+security = false
+proofs = ["RUN"]
+text = "Playback gives no record. RUN"
+
+[[claim]]
+id = "B13.3"
+function = "F-B13"
+due = "0.6"
+security = true
+proofs = ["RUN"]
+text = "Logbook never opens an audio or video stream itself: no capture node of Logbook's in `pw-dump`. RUN"
+
+[[claim]]
+id = "B13.4"
+function = "F-B13"
+due = "0.6"
+security = false
+proofs = ["RUN"]
+text = "With the privacy lane off, nothing is recorded. RUN"
+break = "ignore the lane switch (B13.4 fails)."
+
+[[claim]]
+id = "B14.1"
+function = "F-B14"
+due = "0.6"
+security = false
+proofs = ["RUN"]
+text = "A screen-sharing session is recorded on GNOME, KDE and wlroots (`VERIFY`). RUN"
+break = "count only portal sessions and miss PipeWire streams (B14.1 fails on one desktop)."
+
+[[claim]]
+id = "B14.2"
+function = "F-B14"
+due = "0.6"
+security = false
+proofs = ["GUI"]
+text = "Under X11 the limit is stated openly. GUI"
+
+[[claim]]
+id = "B15.1"
+function = "F-B15"
+due = "0.6"
+security = false
+proofs = ["RUN"]
+text = "A test program that opens a virtual camera device directly is recognised. RUN (`v4l2loopback` in the VM)"
+
+[[claim]]
+id = "B15.2"
+function = "F-B15"
+due = "0.6"
+security = false
+proofs = ["RUN"]
+text = "Unplugging is recorded as \"device removed\". RUN"
+
+[[claim]]
+id = "B15.3"
+function = "F-B15"
+due = "0.6"
+security = false
+proofs = ["UNIT"]
+text = "No checking while no camera device exists. UNIT"
+break = "check even without a device (B15.3 fails)."
+
+[[claim]]
+id = "B16.1"
+function = "F-B16"
+due = "0.7"
+security = false
+proofs = ["CONF"]
+text = "Recorded UPower values give daily readings; noticeable changes only. CONF"
+break = "record every change (B16.1 fails)."
+
+[[claim]]
+id = "B16.2"
+function = "F-B16"
+due = "0.7"
+security = false
+proofs = ["CONF"]
+text = "A replaced battery is recognised as \"new battery?\". CONF"
+
+[[claim]]
+id = "B16.3"
+function = "F-B16"
+due = "0.7"
+security = false
+proofs = ["DOC"]
+text = "The UPower field contract holds. DOC"
+
+[[claim]]
+id = "B17.1"
+function = "F-B17"
+due = "0.7"
+security = false
+proofs = ["CONF"]
+text = "Recorded UDisks2 data, including `SmartGetAttributes`, gives the right readings. CONF"
+
+[[claim]]
+id = "B17.2"
+function = "F-B17"
+due = "0.7"
+security = false
+proofs = ["CONF"]
+text = "USB drives without SMART: \"not available\". CONF"
+
+[[claim]]
+id = "B17.3"
+function = "F-B17"
+due = "0.7"
+security = false
+proofs = ["UNIT"]
+text = "Thresholds come from the drive's own data. UNIT"
+break = "use a fixed threshold (B17.3 fails)."
+
+[[claim]]
+id = "B17.4"
+function = "F-B17"
+due = "0.7"
+security = false
+proofs = ["DOC"]
+text = "Contract on a real drive. DOC"
+
+[[claim]]
+id = "B18.1"
+function = "F-B18"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "A recorded fwupd history gives the right events; a failed update is *serious*. CONF"
+break = "drop failed updates (B18.1 fails)."
+
+[[claim]]
+id = "B18.2"
+function = "F-B18"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "A BIOS version change between two boots is recognised. CONF"
+
+[[claim]]
+id = "B18.3"
+function = "F-B18"
+due = "0.2"
+security = false
+proofs = ["DOC"]
+text = "The fwupd contract holds. DOC"
+
+[[claim]]
+id = "B19.1"
+function = "F-B19"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Recorded rpm-ostree output (update, staged, rollback) gives the right events. CONF"
+
+[[claim]]
+id = "B19.2"
+function = "F-B19"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "\"Staged\" and \"active\" are distinguished. CONF"
+break = "treat \"staged\" as active (B19.2 fails)."
+
+[[claim]]
+id = "B19.3"
+function = "F-B19"
+due = "0.2"
+security = false
+proofs = ["DISTRO"]
+text = "On a real Silverblue or Bazzite VM. DISTRO"
+
+[[claim]]
+id = "B20.1"
+function = "F-B20"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Recorded CachyOS logs: updates carry the right before and after numbers. CONF (real logs from this machine)"
+break = "swap \"before\" and \"after\" (B20.1 fails)."
+
+[[claim]]
+id = "B20.2"
+function = "F-B20"
+due = "0.2"
+security = true
+proofs = ["GUI", "STATIC"]
+text = "The card shows the hint and **no restore button**; no code path can start snapper, Timeshift or a restore. GUI + STATIC (the `logbook-exec` list contains no write commands)"
+
+[[claim]]
+id = "C01.1"
+function = "F-C01"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "The output of every reader maps onto the model. CONF (G7)"
+
+[[claim]]
+id = "C01.2"
+function = "F-C01"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "A field change without a version change fails. STATIC (schema snapshot)"
+break = "add a field without changing the version (C01.2 fails)."
+
+[[claim]]
+id = "C02.1"
+function = "F-C02"
+due = "0.1a"
+security = false
+proofs = ["UNIT", "STATIC"]
+text = "Every pattern has at least 2 positive and 2 negative example lines, and they pass. STATIC (data check) + UNIT"
+break = "remove an anchor from a pattern (C02.1 fails: a negative example matches)."
+
+[[claim]]
+id = "C02.2"
+function = "F-C02"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "No unintended double matches. UNIT (overlap test)"
+
+[[claim]]
+id = "C02.3"
+function = "F-C02"
+due = "0.1a"
+security = true
+proofs = ["FUZZ", "STATIC"]
+text = "Only a regular-expression engine with guaranteed linear time; backtracking engines are banned. STATIC (`cargo-deny` bans `fancy-regex`, `pcre2`) + FUZZ (worst-case lines)"
+
+[[claim]]
+id = "C03.1"
+function = "F-C03"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Repeat sequences give the expected counts and windows. CONF"
+
+[[claim]]
+id = "C03.2"
+function = "F-C03"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "Nothing is lost: the sum of all counts equals the number of matching raw records. PROP"
+
+[[claim]]
+id = "C03.3"
+function = "F-C03"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "Different subjects never fold. PROP"
+break = "fold by kind only (C03.3 fails)."
+
+[[claim]]
+id = "C04.1"
+function = "F-C04"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Sample transactions give the expected summary, with the important packages first. CONF"
+break = "sort alphabetically (C04.1 fails)."
+
+[[claim]]
+id = "C04.2"
+function = "F-C04"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "The list of important packages for each distribution is a tested data file. STATIC"
+
+[[claim]]
+id = "C04.3"
+function = "F-C04"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Flatpak runtimes and apps are two events. CONF"
+
+[[claim]]
+id = "C05.1"
+function = "F-C05"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "Every event kind has a level; a kind without one fails. STATIC"
+break = "give unknown kinds \"info\" (C05.1 fails)."
+
+[[claim]]
+id = "C05.2"
+function = "F-C05"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "The examples in the table have their level. CONF"
+
+[[claim]]
+id = "C06.1"
+function = "F-C06"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Kernel update → driver error, program update → crash, and a crash without any change give the right links. CONF"
+
+[[claim]]
+id = "C06.2"
+function = "F-C06"
+due = "0.2"
+security = false
+proofs = ["PROP"]
+text = "The links are in the right order of strength. PROP (random sets of changes)"
+
+[[claim]]
+id = "C06.3"
+function = "F-C06"
+due = "0.2"
+security = false
+proofs = ["PROP"]
+text = "No link points to a change *after* the problem. PROP"
+break = "allow changes after the problem (C06.3 fails)."
+
+[[claim]]
+id = "C06.4"
+function = "F-C06"
+due = "0.2"
+security = false
+proofs = ["STATIC"]
+text = "\"caused\" / \"verursacht\" never appears in any template. STATIC (word scan over all languages)"
+
+[[claim]]
+id = "C07.1"
+function = "F-C07"
+due = "0.2"
+security = false
+proofs = ["CONF", "PROP"]
+text = "Value series give the right statements, including \"not enough history yet\". CONF + PROP"
+
+[[claim]]
+id = "C07.2"
+function = "F-C07"
+due = "0.2"
+security = false
+proofs = ["PROP"]
+text = "The median is used, not the average: one outlier doesn't change \"usual\". PROP"
+break = "use the average (C07.2 fails)."
+
+[[claim]]
+id = "C07.3"
+function = "F-C07"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "After a lasting jump the baseline is reset. CONF"
+
+[[claim]]
+id = "C08.1"
+function = "F-C08"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Unknown error lines appear in the collection, and known ones don't. CONF"
+break = "drop unknown errors (C08.1 fails)."
+
+[[claim]]
+id = "C09.1"
+function = "F-C09"
+due = "0.2"
+security = false
+proofs = ["CONF", "RUN"]
+text = "Each source type is resolved: package, Flatpak, Snap, AppImage, sandbox, loose file. CONF + RUN (a real Flatpak, a real AppImage, a real program in SAM's sandbox in the CI VM)"
+
+[[claim]]
+id = "C09.2"
+function = "F-C09"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "Repeat lookups use the cache. UNIT (lookup counter)"
+
+[[claim]]
+id = "C09.3"
+function = "F-C09"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Sandbox paths become \"in a sandbox\", never \"unknown\". CONF"
+break = "drop the sandbox rule (C09.3 fails)."
+
+[[claim]]
+id = "C09.4"
+function = "F-C09"
+due = "0.1a"
+security = false
+proofs = ["ORACLE"]
+text = "The package owner matches `pacman -Qo` / `dpkg -S` / `rpm -qf`. ORACLE"
+
+[[claim]]
+id = "C10.1"
+function = "F-C10"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "Every event kind has a template in English and German. STATIC (translation check)"
+
+[[claim]]
+id = "C10.2"
+function = "F-C10"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "Every template has a fallback without placeholders. STATIC"
+break = "delete a fallback (C10.2 fails)."
+
+[[claim]]
+id = "C10.3"
+function = "F-C10"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "No technical term from the word list in normal text without an explanation. STATIC"
+
+[[claim]]
+id = "C11.1"
+function = "F-C11"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "An event updated during a run appears updated in the window and in `--json`, without a restart. RUN"
+
+[[claim]]
+id = "C11.2"
+function = "F-C11"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "The ID stays the same. PROP"
+break = "give an updated event a new ID (C11.2 fails)."
+
+[[claim]]
+id = "C12.1"
+function = "F-C12"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "Deriving the same raw records twice gives identical events and IDs. PROP (G1, G3)"
+break = "derive the ID from a counter (C12.1 fails)."
+
+[[claim]]
+id = "C12.2"
+function = "F-C12"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "After a pattern change, a past false alarm disappears from the last 30 days. CONF (two versions of the rules)"
+
+[[claim]]
+id = "C12.3"
+function = "F-C12"
+due = "0.5"
+security = false
+proofs = ["CONF"]
+text = "An undo link survives re-deriving. CONF"
+
+[[claim]]
+id = "D01.1"
+function = "F-D01"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Migration from every earlier schema version works. CONF (one stored database per version)"
+
+[[claim]]
+id = "D01.2"
+function = "F-D01"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "A backup copy is made before migrating. UNIT"
+break = "migrate without a backup (D01.2 fails)."
+
+[[claim]]
+id = "D01.3"
+function = "F-D01"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "An older Logbook refuses a newer database. UNIT"
+
+[[claim]]
+id = "D01.4"
+function = "F-D01"
+due = "0.1a"
+security = false
+proofs = ["FAULT"]
+text = "A damaged database is detected, moved aside and replaced, with a gap. FAULT"
+
+[[claim]]
+id = "D02.1"
+function = "F-D02"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "Per lane, events beyond the retention are deleted and the others kept; the privacy lane keeps 30 days by default. PROP (simulated clock)"
+break = "give the privacy lane 180 days (D02.1 fails)."
+
+[[claim]]
+id = "D03.1"
+function = "F-D03"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "The raw lines can still be viewed after the journal has rotated. CONF"
+
+[[claim]]
+id = "D03.2"
+function = "F-D03"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "At most 20 lines; when folded, the first 10 and the last 10. PROP"
+break = "keep 21 lines (D03.2 fails)."
+
+[[claim]]
+id = "D03.3"
+function = "F-D03"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "Stored unchanged; the filter applies only on output. UNIT"
+
+[[claim]]
+id = "D04.1"
+function = "F-D04"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "A running collector and several readers: no locking errors. RUN (stress test)"
+
+[[claim]]
+id = "D04.2"
+function = "F-D04"
+due = "0.1a"
+security = true
+proofs = ["RUN"]
+text = "A write attempt through a reading connection fails at the database. RUN"
+break = "open reading connections without `query_only` (D04.2 fails)."
+
+[[claim]]
+id = "D04.3"
+function = "F-D04"
+due = "0.1a"
+security = true
+proofs = ["STATIC"]
+text = "Only the collector depends on `store-write`. STATIC (architecture check)"
+
+[[claim]]
+id = "D05.1"
+function = "F-D05"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "Over the limit, pruning goes info → problem → serious. PROP"
+break = "prune serious events first (D05.1 fails)."
+
+[[claim]]
+id = "D05.2"
+function = "F-D05"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "The window shows that pruning happened early. UNIT"
+
+[[claim]]
+id = "D06.1"
+function = "F-D06"
+due = "0.8"
+security = false
+proofs = ["CONF"]
+text = "Export → import on a second system gives the same events. CONF"
+
+[[claim]]
+id = "D06.2"
+function = "F-D06"
+due = "0.8"
+security = false
+proofs = ["CONF", "CANARY"]
+text = "The privacy lane is left out unless chosen. CONF + CANARY (privacy events carry canaries)"
+break = "include the privacy lane by default (D06.2 fails)."
+
+[[claim]]
+id = "D06.3"
+function = "F-D06"
+due = "0.8"
+security = true
+proofs = ["FUZZ"]
+text = "The import parser is hardened. FUZZ"
+
+[[claim]]
+id = "D07.1"
+function = "F-D07"
+due = "0.1a"
+security = true
+proofs = ["RUN"]
+text = "After forgetting, the data can't be found in the store **or in the bytes** of the database, its write-ahead log and shared-memory file. RUN (canary bytes searched in all three files after forgetting)"
+break = "delete events but keep their raw records (D07.1 fails)."
+
+[[claim]]
+id = "D07.2"
+function = "F-D07"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "A re-import doesn't bring the data back. CONF"
+
+[[claim]]
+id = "D07.3"
+function = "F-D07"
+due = "0.1a"
+security = false
+proofs = ["CONF", "CANARY"]
+text = "Only a count remains in the Logbook lane. CONF + CANARY"
+
+[[claim]]
+id = "E01.1"
+function = "F-E01"
+due = "0.2"
+security = false
+proofs = ["PROP"]
+text = "The mark is the worst severity of the day; no data gives \"·\", never \"●\". PROP"
+break = "show \"●\" for days without data (E01.1 fails)."
+
+[[claim]]
+id = "E01.2"
+function = "F-E01"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Test days give the right marks. CONF"
+
+[[claim]]
+id = "E02.1"
+function = "F-E02"
+due = "0.2"
+security = false
+proofs = ["PROP"]
+text = "Every ▲ and ■ has a reason naming the events that decided it. PROP (G8)"
+break = "take the reason from the first event of the day, not the decisive one (E02.1 fails)."
+
+[[claim]]
+id = "E02.2"
+function = "F-E02"
+due = "0.2"
+security = false
+proofs = ["UNIT"]
+text = "At most two reasons, then \"and n more\". UNIT"
+
+[[claim]]
+id = "F01.1"
+function = "F-F01"
+due = "0.1b"
+security = false
+proofs = ["GUI"]
+text = "Fully usable with keyboard and mouse. GUI"
+
+[[claim]]
+id = "F01.2"
+function = "F-F01"
+due = "0.2"
+security = false
+proofs = ["GUI"]
+text = "Marks are distinct shapes and readable in high contrast; the screen reader reads them as text. GUI"
+break = "draw the marks with colour only (F01.2 fails)."
+
+[[claim]]
+id = "F02.1"
+function = "F-F02"
+due = "0.1b"
+security = false
+proofs = ["CONF", "GUI"]
+text = "A test day with every event kind is shown completely and in the correct order. GUI (store from a CONF case)"
+break = "sort by lane instead of time (F02.1 fails)."
+
+[[claim]]
+id = "F03.1"
+function = "F-F03"
+due = "0.1b"
+security = false
+proofs = ["GUI"]
+text = "Every event kind is shown completely. GUI"
+
+[[claim]]
+id = "F03.2"
+function = "F-F03"
+due = "0.1b"
+security = true
+proofs = ["GUI", "STATIC"]
+text = "No card has a button that changes the system, apart from undo (K01). STATIC (`logbook-gtk` may call only `logbook-query`, the collector request channel and `logbook-undo`) + GUI (list of all buttons)"
+break = "a \"restore snapshot\" button (F03.2 fails)."
+
+[[claim]]
+id = "F04.1"
+function = "F-F04"
+due = "0.1b"
+security = false
+proofs = ["UNIT"]
+text = "Filters work together with search and the day view, and the choice is remembered. UNIT"
+break = "the filter is ignored in search (F04.1 fails)."
+
+[[claim]]
+id = "F05.1"
+function = "F-F05"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Test searches find the expected events, including through synonyms. CONF"
+
+[[claim]]
+id = "F05.2"
+function = "F-F05"
+due = "0.1b"
+security = true
+proofs = ["FUZZ"]
+text = "Search text can't break the database query; it is passed as data, never as query syntax. FUZZ (*new, found while mapping*)"
+break = "paste the search text into the full-text query (F05.2 fails)."
+
+[[claim]]
+id = "F06.1"
+function = "F-F06"
+due = "0.1b"
+security = false
+proofs = ["UNIT"]
+text = "Each coverage state shows the right banner, and it returns only when the state changes. UNIT"
+break = "no banner for partial coverage (F06.1 fails)."
+
+[[claim]]
+id = "F07.1"
+function = "F-F07"
+due = "0.1b"
+security = false
+proofs = ["RUN"]
+text = "Every setting takes effect immediately and survives a restart. RUN"
+
+[[claim]]
+id = "F07.2"
+function = "F-F07"
+due = "0.1b"
+security = false
+proofs = ["CONF"]
+text = "Every change is recorded in the Logbook lane. CONF"
+
+[[claim]]
+id = "F07.3"
+function = "F-F07"
+due = "0.1b"
+security = false
+proofs = ["UNIT"]
+text = "Defaults: privacy lane, notifications and AI access are off. UNIT"
+break = "AI access on by default (F07.3 fails)."
+
+[[claim]]
+id = "F08.1"
+function = "F-F08"
+due = "0.1b"
+security = false
+proofs = ["RUN"]
+text = "On a fresh system the timeline with history is visible within a minute; the import continues. RUN (VM)"
+break = "block the window until the import ends (F08.1 fails)."
+
+[[claim]]
+id = "F09.1"
+function = "F-F09"
+due = "0.1b"
+security = false
+proofs = ["GUI"]
+text = "The accessibility check passes, and a full walk-through works with the keyboard alone. GUI"
+break = "an unlabelled button (F09.1 fails)."
+
+[[claim]]
+id = "F10.1"
+function = "F-F10"
+due = "0.1b"
+security = false
+proofs = ["GUI"]
+text = "Raw lines are shown in full and can be copied. GUI"
+
+[[claim]]
+id = "F10.2"
+function = "F-F10"
+due = "0.1b"
+security = true
+proofs = ["GUI"]
+text = "Control and bidirectional characters are shown visibly. GUI + G5"
+break = "show raw lines unfiltered (F10.2 fails)."
+
+[[claim]]
+id = "F11.1"
+function = "F-F11"
+due = "0.8"
+security = false
+proofs = ["GUI"]
+text = "It opens in its own window with the banner. GUI"
+
+[[claim]]
+id = "F11.2"
+function = "F-F11"
+due = "0.8"
+security = true
+proofs = ["RUN"]
+text = "Nothing gets into the helper's own store (byte-identical). RUN (G9)"
+break = "import the report into the own store (F11.2 fails)."
+
+[[claim]]
+id = "F11.3"
+function = "F-F11"
+due = "0.8"
+security = true
+proofs = ["FUZZ"]
+text = "The report parser survives fuzzing. FUZZ"
+
+[[claim]]
+id = "G01.1"
+function = "F-G01"
+due = "0.3"
+security = false
+proofs = ["CONF"]
+text = "For each test event the report contains exactly the six parts. CONF (approved sample reports)"
+break = "leave out \"what changed in the 7 days before\" (G01.1 fails)."
+
+[[claim]]
+id = "G01.2"
+function = "F-G01"
+due = "0.3"
+security = true
+proofs = ["CONF", "RUN"]
+text = "Never a memory snapshot, only the backtrace from the journal. CONF + RUN (B09.2's open-watch)"
+
+[[claim]]
+id = "G02.1"
+function = "F-G02"
+due = "0.3"
+security = true
+proofs = ["CANARY"]
+text = "Not one planted value gets through: user name, real name, home path, host name, IP, MAC, wifi name, email, serial number. CANARY (G4, on every case)"
+break = "remove the MAC rule (G02.1 fails)."
+
+[[claim]]
+id = "G02.2"
+function = "F-G02"
+due = "0.3"
+security = false
+proofs = ["PROP"]
+text = "Replacements are consistent within a report. PROP"
+
+[[claim]]
+id = "G02.3"
+function = "F-G02"
+due = "0.3"
+security = false
+proofs = ["CONF"]
+text = "False hits stay within the limit (the user name \"max\" case). CONF"
+
+[[claim]]
+id = "G03.1"
+function = "F-G03"
+due = "0.3"
+security = false
+proofs = ["UNIT"]
+text = "Every switch changes the preview; removed lines are missing from the result. UNIT"
+
+[[claim]]
+id = "G03.2"
+function = "F-G03"
+due = "0.3"
+security = false
+proofs = ["GUI", "UNIT"]
+text = "Nothing is created or copied before confirming. UNIT + GUI"
+break = "copy to the clipboard when the preview opens (G03.2 fails)."
+
+[[claim]]
+id = "G04.1"
+function = "F-G04"
+due = "0.3"
+security = false
+proofs = ["PROP"]
+text = "Markdown stays at or below 60,000 characters even with a huge log, with a note when shortened. PROP"
+
+[[claim]]
+id = "G04.2"
+function = "F-G04"
+due = "0.3"
+security = true
+proofs = ["PROP", "FUZZ"]
+text = "Raw lines can't leave their code block: the fence is always longer than the longest run of backticks inside. PROP + FUZZ"
+break = "a fixed three-backtick fence (G04.2 fails)."
+
+[[claim]]
+id = "G04.3"
+function = "F-G04"
+due = "0.3"
+security = false
+proofs = ["UNIT"]
+text = "It displays correctly. UNIT (local GFM renderer) + a release check by the owner (contract)"
+
+[[claim]]
+id = "G04.4"
+function = "F-G04"
+due = "0.8"
+security = false
+proofs = ["RUN"]
+text = "A report file opens in F11. RUN (0.8)"
+
+[[claim]]
+id = "G06.1"
+function = "F-G06"
+due = "0.8"
+security = false
+proofs = ["CONF"]
+text = "Two test reports with known differences give exactly those differences. CONF"
+break = "ignore the kernel version (G06.1 fails)."
+
+[[claim]]
+id = "H01.1"
+function = "F-H01"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "Each kind is triggered by its scenario and by **no other** scenario. CONF (matrix: every scenario × every kind)"
+break = "trigger \"much slower start\" at 2× instead of 3× (H01.1 fails)."
+
+[[claim]]
+id = "H01.2"
+function = "F-H01"
+due = "0.2"
+security = false
+proofs = ["UNIT"]
+text = "Off by default. UNIT"
+
+[[claim]]
+id = "H02.1"
+function = "F-H02"
+due = "0.2"
+security = false
+proofs = ["PROP"]
+text = "A flood gives at most one per kind and subject per day and at most 5 a day. PROP"
+break = "no daily limit (H02.1 fails)."
+
+[[claim]]
+id = "H02.2"
+function = "F-H02"
+due = "0.2"
+security = false
+proofs = ["UNIT"]
+text = "None during full screen; shown afterwards. UNIT"
+
+[[claim]]
+id = "H03.1"
+function = "F-H03"
+due = "0.2"
+security = false
+proofs = ["UNIT"]
+text = "A switched-off kind is no longer shown, even when its event occurs. UNIT"
+break = "the switch is checked only in the settings page (H03.1 fails)."
+
+[[claim]]
+id = "I01.1"
+function = "F-I01"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "matches the day view of the same store"
+
+[[claim]]
+id = "I02.1"
+function = "F-I02"
+due = "0.1a"
+security = false
+proofs = ["PROP"]
+text = "`--since`, `--lane` and `--problems` filter correctly (PROP)"
+
+[[claim]]
+id = "I03.1"
+function = "F-I03"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "an invalid date gives exit code 1 and a clear message"
+
+[[claim]]
+id = "I04.1"
+function = "F-I04"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "an unknown ID gives exit code 2"
+
+[[claim]]
+id = "I05.1"
+function = "F-I05"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "the same results as F05 (shared `logbook-query`), plus F05.2's fuzzing"
+
+[[claim]]
+id = "I06.1"
+function = "F-I06"
+due = "0.3"
+security = false
+proofs = ["CONF"]
+text = "the same report as G01 to G04; `open` is read-only (G9)"
+
+[[claim]]
+id = "I07.1"
+function = "F-I07"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "the most frequent unrecognised messages, in the right order"
+
+[[claim]]
+id = "I08.1"
+function = "F-I08"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "shows collector state, readers, coverage, size and \"since\""
+
+[[claim]]
+id = "I09.1"
+function = "F-I09"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "forget asks first and names what will be deleted; doctor see L09"
+
+[[claim]]
+id = "I10.1"
+function = "F-I10"
+due = "0.4"
+security = false
+proofs = ["RUN"]
+text = "starts the AI interface with all of J's protections active (RUN, see J05)"
+
+[[claim]]
+id = "J01.1"
+function = "F-J01"
+due = "0.4"
+security = false
+proofs = ["RUN"]
+text = "A standard MCP test client can call every tool. RUN (`VERIFY` the reference client)"
+
+[[claim]]
+id = "J01.2"
+function = "F-J01"
+due = "0.4"
+security = false
+proofs = ["UNIT"]
+text = "At most 200 events per call and 90 days per request. UNIT"
+break = "no limit (J01.2 fails)."
+
+[[claim]]
+id = "J01.3"
+function = "F-J01"
+due = "0.4"
+security = false
+proofs = ["CONF"]
+text = "The results equal the terminal command's for the same question (shared `logbook-query`). CONF"
+
+[[claim]]
+id = "J02.1"
+function = "F-J02"
+due = "0.4"
+security = false
+proofs = ["CONF"]
+text = "With access off, every tool refuses. CONF"
+
+[[claim]]
+id = "J02.2"
+function = "F-J02"
+due = "0.4"
+security = true
+proofs = ["PROP"]
+text = "Lanes that aren't released never appear in any result. PROP (on every case: the lanes in the result are a subset of the released lanes)"
+break = "the `search` tool ignores the released lanes (J02.2 fails)."
+
+[[claim]]
+id = "J02.3"
+function = "F-J02"
+due = "0.4"
+security = false
+proofs = ["UNIT"]
+text = "The privacy lane isn't released by switching AI access on. UNIT"
+
+[[claim]]
+id = "J03.1"
+function = "F-J03"
+due = "0.4"
+security = true
+proofs = ["CONF"]
+text = "Hostile lines appear only in fields marked as untrusted, never in a description field. G6 on every case"
+break = "put the program name into the description sentence unmarked (J03.1 fails)."
+
+[[claim]]
+id = "J03.2"
+function = "F-J03"
+due = "0.4"
+security = false
+proofs = ["UNIT"]
+text = "Every result carries the notice. UNIT"
+
+[[claim]]
+id = "J04.1"
+function = "F-J04"
+due = "0.4"
+security = true
+proofs = ["CANARY"]
+text = "The canary tests pass for every tool. CANARY (G4)"
+
+[[claim]]
+id = "J04.2"
+function = "F-J04"
+due = "0.4"
+security = true
+proofs = ["STATIC"]
+text = "The filter can't be switched off: there is no setting for it. STATIC (configuration schema)"
+break = "the filter follows the `--redact` setting (J04.2 fails)."
+
+[[claim]]
+id = "J05.1"
+function = "F-J05"
+due = "0.4"
+security = true
+proofs = ["STATIC"]
+text = "The list of tools contains no tool that writes, undoes or runs anything. STATIC (tool list snapshot, a protected file)"
+break = "add an `undo` tool (J05.1 and J05.4 fail)."
+
+[[claim]]
+id = "J05.2"
+function = "F-J05"
+due = "0.4"
+security = true
+proofs = ["RUN"]
+text = "A write attempt from the `logbook mcp` process fails at the database. RUN"
+
+[[claim]]
+id = "J05.3"
+function = "F-J05"
+due = "0.4"
+security = true
+proofs = ["RUN"]
+text = "The process runs with the network block and file-access limits active (`/proc/<pid>/status` shows the filter). RUN"
+
+[[claim]]
+id = "J05.4"
+function = "F-J05"
+due = "0.4"
+security = true
+proofs = ["STATIC"]
+text = "`logbook-mcp` depends neither on `store-write`, `undo` nor `exec`. STATIC"
+break = "add an `undo` tool (J05.1 and J05.4 fail)."
+
+[[claim]]
+id = "J06.1"
+function = "F-J06"
+due = "0.4"
+security = false
+proofs = ["CONF", "RUN"]
+text = "Every tool call leads to an entry in the Logbook lane, folded per session. CONF + RUN"
+break = "no note for the `event` tool (J06.1 fails)."
+
+[[claim]]
+id = "J06.2"
+function = "F-J06"
+due = "0.4"
+security = true
+proofs = ["CANARY"]
+text = "The entry contains no content of the results. CANARY"
+
+[[claim]]
+id = "J07.1"
+function = "F-J07"
+due = "0.4"
+security = false
+proofs = ["UNIT"]
+text = "The description is present, says \"happened right after ≠ caused by\", points to `coverage()`, and stays below its length limit. UNIT"
+break = "the description is missing (J07.1 fails)."
+
+[[claim]]
+id = "K01.1"
+function = "F-K01"
+due = "0.5"
+security = false
+proofs = ["RUN"]
+text = "Undo restores the old value on GNOME and on KDE. RUN (real sessions)"
+
+[[claim]]
+id = "K01.2"
+function = "F-K01"
+due = "0.5"
+security = false
+proofs = ["RUN"]
+text = "A warning appears if the value has changed again since. RUN"
+
+[[claim]]
+id = "K01.3"
+function = "F-K01"
+due = "0.5"
+security = false
+proofs = ["RUN"]
+text = "The undo itself can be undone. RUN"
+
+[[claim]]
+id = "K01.4"
+function = "F-K01"
+due = "0.5"
+security = true
+proofs = ["RUN", "STATIC"]
+text = "It writes only dconf and KDE files in the home folder, never system files. STATIC (only `logbook-undo` writes settings) + RUN (Landlock: the window may write only below `~/.config` and its own folders)"
+break = "undo writes a value under `/etc` (K01.4 fails)."
+
+[[claim]]
+id = "K01.5"
+function = "F-K01"
+due = "0.5"
+security = true
+proofs = ["STATIC"]
+text = "It isn't reachable through the AI interface. STATIC (J05.4)"
+
+[[claim]]
+id = "L01.1"
+function = "F-L01"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Each of its events is recorded in its scenario: start and stop, coverage changed, gap, early pruning, AI access, undo, update. CONF"
+break = "no event for a gap (L01.1 fails)."
+
+[[claim]]
+id = "L02.1"
+function = "F-L02"
+due = "0.1a"
+security = true
+proofs = ["STATIC"]
+text = "No network crates and no network features in the dependency tree. STATIC (`cargo-deny` bans and feature bans, `VERIFY` the feature ban syntax)"
+
+[[claim]]
+id = "L02.2"
+function = "F-L02"
+due = "0.1a"
+security = true
+proofs = ["RUN", "STATIC"]
+text = "**Every** Logbook program (collector, `logbook`, `logbook mcp`, window) blocks network sockets for itself as its first step. STATIC (each `main` calls `logbook_guard::deny_network()` first) + RUN (a network attempt fails in each process; `/proc/<pid>/status` shows the filter)"
+break = "remove the `deny_network()` call from one program (L02.2 fails)."
+
+[[claim]]
+id = "L02.3"
+function = "F-L02"
+due = "0.1a"
+security = true
+proofs = ["RUN", "STATIC"]
+text = "The unit file contains `RestrictAddressFamilies=AF_UNIX`, and `systemd-analyze security --user` stays at or below the agreed score. STATIC + RUN"
+
+[[claim]]
+id = "L03.1"
+function = "F-L03"
+due = "0.1a"
+security = true
+proofs = ["RUN", "STATIC"]
+text = "Programs are started only through `logbook-exec`, with a fixed list of read-only commands. STATIC (clippy `disallowed_methods`) + RUN (an attempt outside the list fails)"
+break = "start a program directly with `std::process::Command` in a reader (L03.1 fails)."
+
+[[claim]]
+id = "L03.2"
+function = "F-L03"
+due = "0.1a"
+security = true
+proofs = ["RUN"]
+text = "The collector may write only in its own folders; Landlock (the kernel's file-access limit) enforces it. RUN (a write elsewhere fails)"
+
+[[claim]]
+id = "L03.3"
+function = "F-L03"
+due = "0.2"
+security = true
+proofs = ["PROP", "FUZZ"]
+text = "Every text reader and the report parser survive fuzzing; lines of any length are cut. FUZZ + PROP"
+
+[[claim]]
+id = "L03.4"
+function = "F-L03"
+due = "0.1a"
+security = true
+proofs = ["CONF"]
+text = "Linear-time patterns. See C02.3"
+
+[[claim]]
+id = "L03.5"
+function = "F-L03"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "The unit's hardening is verified. RUN (`systemd-analyze security --user`)"
+
+[[claim]]
+id = "L04.1"
+function = "F-L04"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "Every visible text is in the translation files, in English and German. STATIC"
+break = "a hard-coded label (L04.1 fails)."
+
+[[claim]]
+id = "L05.1"
+function = "F-L05"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "Hand edits take effect. CONF"
+
+[[claim]]
+id = "L05.2"
+function = "F-L05"
+due = "0.1a"
+security = false
+proofs = ["CONF", "FUZZ"]
+text = "An invalid file gives a clear message, no crash, and the defaults apply. CONF + FUZZ"
+break = "crash on an unknown key (L05.2 fails)."
+
+[[claim]]
+id = "L06.1"
+function = "F-L06"
+due = "0.1a"
+security = false
+proofs = ["RUN"]
+text = "After `logbook forget --all`, no Logbook files remain in the home folder. RUN"
+break = "leave the configuration folder behind (L06.1 fails)."
+
+[[claim]]
+id = "L06.2"
+function = "F-L06"
+due = "0.1a"
+security = false
+proofs = ["DISTRO"]
+text = "Removing the package removes the service. DISTRO"
+
+[[claim]]
+id = "L07.1"
+function = "F-L07"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "`status --verbose` shows bookmark positions, reader errors, timing and store statistics. CONF"
+break = "leave out reader errors (L07.1 fails)."
+
+[[claim]]
+id = "L08.1"
+function = "F-L08"
+due = "0.1a"
+security = false
+proofs = ["STATIC"]
+text = "Every claim due in the current version has a passing test whose break fails it; every test refers to an existing claim. STATIC (V01)"
+break = "delete the only test of a claim (L08.1 fails)."
+
+[[claim]]
+id = "L09.1"
+function = "F-L09"
+due = "0.1a"
+security = false
+proofs = ["CONF"]
+text = "A deliberately changed format is detected. CONF (altered recordings)"
+break = "doctor checks only that a file exists (L09.1 fails)."
+
+[[claim]]
+id = "L09.2"
+function = "F-L09"
+due = "0.1b"
+security = false
+proofs = ["DISTRO"]
+text = "CI runs it on every listed distribution. DISTRO"
+
+[[claim]]
+id = "L09.3"
+function = "F-L09"
+due = "0.2"
+security = false
+proofs = ["CONF"]
+text = "The false-alarm rate on the reference corpus and the hidden test set is below 1 per 10 days. CONF + hidden set (V04)"
+
+[[claim]]
+id = "L10.1"
+function = "F-L10"
+due = "0.1a"
+security = true
+proofs = ["RUN"]
+text = "After a deliberately wrong permission, the next start restores `0700`/`0600` and records it. RUN"
+break = "skip the check at start (L10.1 fails)."
+
+[[claim]]
+id = "L10.2"
+function = "F-L10"
+due = "0.1a"
+security = true
+proofs = ["RUN"]
+text = "New files are created with `0600` from the start (never readable by others, not even briefly). RUN"
+
+[[claim]]
+id = "L11.1"
+function = "F-L11"
+due = "0.2"
+security = false
+proofs = ["DISTRO"]
+text = "Installation from each channel works on a fresh system. DISTRO"
+
+[[claim]]
+id = "L11.2"
+function = "F-L11"
+due = "0.1a"
+security = true
+proofs = ["RUN"]
+text = "The release signature is checked, and a rebuild gives the same bytes. RUN (release check)"
+break = "publish an unsigned package (L11.2 fails)."
+
+[[claim]]
+id = "L12.1"
+function = "F-L12"
+due = "0.1a"
+security = true
+proofs = ["FUZZ"]
+text = "The attack collection (escape sequences, bidirectional marks, Markdown links, \"ignore previous instructions\") is rendered harmlessly in all four outputs. G5 + G6 + FUZZ (`logbook-render`)"
+break = "pass ESC through in the terminal (L12.1 fails)."

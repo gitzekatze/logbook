@@ -35,5 +35,7 @@ jobs:
         run: |
           cargo install --locked cargo-deny
           cargo deny check
-      - name: Tests
-        run: cargo test --workspace --locked
+      - name: Tests, and every due claim proven by a test that ran and passed
+        run: python3 scripts/claims-check.py
+      - name: Map check catches every deliberate flaw
+        run: sh scripts/claims-check-selftest.sh
