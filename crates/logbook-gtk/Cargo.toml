@@ -1,0 +1,18 @@
+[package]
+name = "logbook-gtk"
+description = "Logbook's window, GTK 4 / libadwaita (F-F)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+logbook-guard.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "logbook-gtk"
+path = "src/main.rs"

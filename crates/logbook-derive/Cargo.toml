@@ -1,0 +1,13 @@
+[package]
+name = "logbook-derive"
+description = "Turning raw records into events: patterns, folding, grouping, severity, links, baselines, texts, day marks (F-C, F-E)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

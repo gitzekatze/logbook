@@ -1,0 +1,39 @@
+# Logbook CI. Phase 0.1: the static checks. Not active until the repository
+# is on GitHub; Phase 0.2 (owner) adds branch protection and pins every action
+# by its full commit hash before that (build plan, V13).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7 # TODO Phase 0.2: pin by commit hash
+        with:
+          persist-credentials: false
+      - name: Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Architecture check
+        run: python3 scripts/arch-check.py
+      - name: Architecture check catches every deliberate break
+        run: sh scripts/arch-check-selftest.sh
+      - name: Dependencies (cargo-deny)
+        run: |
+          cargo install --locked cargo-deny
+          cargo deny check
+      - name: Tests
+        run: cargo test --workspace --locked

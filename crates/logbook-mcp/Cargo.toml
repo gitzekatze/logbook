@@ -1,0 +1,18 @@
+[package]
+name = "logbook-mcp"
+description = "Logbook's read-only AI interface (MCP over stdio), a separate program (F-J)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+logbook-guard.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "logbook-mcp"
+path = "src/main.rs"

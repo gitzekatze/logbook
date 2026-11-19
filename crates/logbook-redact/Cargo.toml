@@ -1,0 +1,13 @@
+[package]
+name = "logbook-redact"
+description = "Logbook's privacy filter for reports, --redact and the AI interface (F-G02, F-J04)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

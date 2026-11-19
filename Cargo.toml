@@ -1,0 +1,57 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/logbook-model",
+    "crates/logbook-store",
+    "crates/logbook-store-write",
+    "crates/logbook-readers",
+    "crates/logbook-exec",
+    "crates/logbook-derive",
+    "crates/logbook-redact",
+    "crates/logbook-render",
+    "crates/logbook-query",
+    "crates/logbook-guard",
+    "crates/logbook-undo",
+    "crates/logbook-collector",
+    "crates/logbook-cli",
+    "crates/logbook-mcp",
+    "crates/logbook-gtk",
+]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+rust-version = "1.92"
+
+# Logbook's own crates. Which crate may depend on which is enforced by
+# scripts/arch-check.py (function map, "Crates: who may do what").
+# External dependencies: none yet. Every new one needs the owner's approval
+# (build plan, V13).
+[workspace.dependencies]
+# Each Logbook crate is added here when the first crate uses it.
+logbook-guard = { path = "crates/logbook-guard" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+strip = true
+
+# Lints for every crate (each has `[lints] workspace = true`; the
+# architecture check fails if one does not).
+[workspace.lints.rust]
+# No unsafe code in Logbook's own crates. "forbid" cannot be switched off
+# further down with #[allow] (build plan, V12).
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+# No .unwrap() and no deliberate crashes outside tests: a failure is an
+# error the caller handles (clippy.toml allows both in tests).
+unwrap_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+# Programs are started only by logbook-exec, and no Logbook code opens a
+# network connection (clippy.toml lists the forbidden calls and types).
+disallowed_methods = "deny"
+disallowed_types = "deny"

@@ -1,0 +1,2 @@
+# One code format for Logbook, checked by `make check` (`cargo fmt --check`).
+max_width = 100

@@ -1,0 +1,13 @@
+[package]
+name = "logbook-guard"
+description = "Network block and file-access limits that every Logbook program applies to itself first (F-L02, F-L03)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

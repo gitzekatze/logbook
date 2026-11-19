@@ -1,0 +1,13 @@
+[package]
+name = "logbook-store"
+description = "Reading Logbook's event store, through read-only connections only (F-D)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

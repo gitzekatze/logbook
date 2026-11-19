@@ -1,0 +1,13 @@
+[package]
+name = "logbook-exec"
+description = "The only part of Logbook that starts programs, from a fixed list of read-only commands (F-L03)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

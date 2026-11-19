@@ -1,0 +1,13 @@
+[package]
+name = "logbook-render"
+description = "Safe output of untrusted text for terminal, Markdown and the AI interface (F-L12)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

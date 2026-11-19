@@ -1,0 +1,13 @@
+[package]
+name = "logbook-undo"
+description = "The only part of Logbook that changes settings: undo for desktop settings (F-K01)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

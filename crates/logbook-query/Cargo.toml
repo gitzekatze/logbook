@@ -1,0 +1,13 @@
+[package]
+name = "logbook-query"
+description = "The read functions shared by the window, the terminal command and the AI interface"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

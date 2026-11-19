@@ -1,0 +1,13 @@
+[package]
+name = "logbook-store-write"
+description = "Writing Logbook's event store; only the collector may depend on it (F-D04)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true
