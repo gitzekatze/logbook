@@ -1,0 +1,25 @@
+# Registry of the practice crate (breaks-check self-test only).
+[registry]
+milestones = ["0.1a"]
+current = "0.1a"
+proof_kinds = ["UNIT", "STATIC"]
+
+[functions."F-A90"]
+name = "Practice"
+version = "0.1"
+
+[[claim]]
+id = "A90.1"
+function = "F-A90"
+due = "0.1a"
+security = true
+proofs = ["UNIT"]
+text = "a path is safe only if it stays inside its folder"
+
+[[claim]]
+id = "A90.2"
+function = "F-A90"
+due = "0.1a"
+security = false
+proofs = ["UNIT"]
+text = "names are cut to 8 characters"

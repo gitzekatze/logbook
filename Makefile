@@ -6,10 +6,11 @@
 #   make selftest   the checks' own tests: each rule broken on purpose must be caught
 #   make claims     the map check: every due claim proven by a test that ran and passed
 #   make summary    claims per milestone
+#   make breaks     the break list: every deliberate mistake must be caught
 
 CARGO ?= cargo
 
-.PHONY: all test check selftest fmt clippy arch deny claims summary clean
+.PHONY: all test check selftest fmt clippy arch deny claims summary breaks clean
 
 all:
 	$(CARGO) build --workspace --locked
@@ -38,11 +39,15 @@ claims:
 summary:
 	python3 scripts/claims-check.py --summary
 
-check: fmt clippy arch deny claims selftest
+breaks:
+	python3 scripts/breaks-check.py
+
+check: fmt clippy arch deny claims breaks selftest
 
 selftest:
 	sh scripts/arch-check-selftest.sh
 	sh scripts/claims-check-selftest.sh
+	sh scripts/breaks-check-selftest.sh
 
 clean:
 	$(CARGO) clean

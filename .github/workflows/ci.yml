@@ -39,3 +39,7 @@ jobs:
         run: python3 scripts/claims-check.py
       - name: Map check catches every deliberate flaw
         run: sh scripts/claims-check-selftest.sh
+      - name: Break list - every deliberate mistake is caught
+        run: python3 scripts/breaks-check.py
+      - name: Break list tells caught, uncaught, stale and wrong breaks apart
+        run: sh scripts/breaks-check-selftest.sh

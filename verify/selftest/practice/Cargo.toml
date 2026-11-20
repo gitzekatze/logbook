@@ -1,0 +1,12 @@
+# A practice crate for scripts/breaks-check-selftest.sh: it shows that the break
+# list tells caught, uncaught, stale and wrong breaks apart. Not part of Logbook.
+[workspace]
+
+[package]
+name = "practice"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lints.rust]
+unsafe_code = "forbid"

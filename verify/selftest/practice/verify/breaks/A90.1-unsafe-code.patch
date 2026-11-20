@@ -1,0 +1,13 @@
+Claim: A90.1
+Break: read through a raw pointer
+Caught-by: clippy
+
+diff --git a/src/lib.rs b/src/lib.rs
+index a128f8d..73bcb11 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -36,3 +36,4 @@ mod tests {
+         assert!(short_name("abcdefghijk").chars().count() <= 8);
+     }
+ }
++pub fn first(p: *const u8) -> u8 { unsafe { *p } }

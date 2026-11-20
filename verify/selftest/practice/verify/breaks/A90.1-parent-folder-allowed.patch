@@ -1,0 +1,17 @@
+Claim: A90.1
+Break: accept ".." because the comparison checks "..." instead
+Caught-by: test
+
+diff --git a/src/lib.rs b/src/lib.rs
+index a128f8d..a703be6 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -3,7 +3,7 @@
+ /// A90.1: a path is safe only if it stays inside its folder: not absolute,
+ /// no "..". Tested well.
+ pub fn is_safe_path(p: &str) -> bool {
+-    !p.starts_with('/') && !p.split('/').any(|c| c == "..")
++    !p.starts_with('/') && !p.split('/').any(|c| c == "...")
+ }
+ 
+ /// A90.2: names are cut to 8 characters. Tested weakly on purpose: the test

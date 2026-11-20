@@ -1,0 +1,17 @@
+Claim: A90.2
+Break: cut names to 4 characters instead of 8
+Caught-by: test
+
+diff --git a/src/lib.rs b/src/lib.rs
+index a128f8d..4a086eb 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -9,7 +9,7 @@ pub fn is_safe_path(p: &str) -> bool {
+ /// A90.2: names are cut to 8 characters. Tested weakly on purpose: the test
+ /// checks "at most 8", so cutting to 4 goes unnoticed.
+ pub fn short_name(s: &str) -> String {
+-    s.chars().take(8).collect()
++    s.chars().take(4).collect()
+ }
+ 
+ #[cfg(test)]
