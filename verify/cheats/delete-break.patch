@@ -1,0 +1,26 @@
+Cheat: delete a break from the break list
+Expect: owner
+
+diff --git a/verify/breaks/L02.2-mcp-skips-network-block.patch b/verify/breaks/L02.2-mcp-skips-network-block.patch
+deleted file mode 100644
+index a622a26..0000000
+--- a/verify/breaks/L02.2-mcp-skips-network-block.patch
++++ /dev/null
+@@ -1,17 +0,0 @@
+-Claim: L02.2
+-Break: the AI interface skips the network block at its start
+-Caught-by: arch
+-
+-diff --git a/crates/logbook-mcp/src/main.rs b/crates/logbook-mcp/src/main.rs
+-index db4797b..0fdb2c9 100644
+---- a/crates/logbook-mcp/src/main.rs
+-+++ b/crates/logbook-mcp/src/main.rs
+-@@ -7,7 +7,7 @@
+- use std::process::ExitCode;
+- 
+- fn main() -> ExitCode {
+--    if let Err(e) = logbook_guard::deny_network() {
+-+    if let Err(e) = Ok::<(), String>(()) {
+-         eprintln!("logbook-mcp: {e}");
+-         return ExitCode::FAILURE;
+-     }

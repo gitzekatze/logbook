@@ -43,3 +43,8 @@ jobs:
         run: python3 scripts/breaks-check.py
       - name: Break list tells caught, uncaught, stale and wrong breaks apart
         run: sh scripts/breaks-check-selftest.sh
+      - name: Cheat list - the gate flags every known way to weaken the checks
+        run: python3 scripts/cheats-check.py
+# The gate itself ("Needs your approval") runs in its own workflow from the
+# base branch (pull_request_target) once the repository is on GitHub and the
+# owner has set up Phase 0.2; locally: make gate BASE=<commit>.

@@ -1,0 +1,15 @@
+Cheat: lift the ban on an HTTP client
+Expect: owner
+
+diff --git a/deny.toml b/deny.toml
+index d2c94a6..79b284b 100644
+--- a/deny.toml
++++ b/deny.toml
+@@ -34,7 +34,6 @@ wildcards = "deny"
+ allow-wildcard-paths = true
+ deny = [
+     # No network (F-L02): HTTP clients and servers, TLS.
+-    { crate = "reqwest" },
+     { crate = "hyper" },
+     { crate = "hyper-util" },
+     { crate = "h2" },

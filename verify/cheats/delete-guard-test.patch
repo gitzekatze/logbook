@@ -1,0 +1,17 @@
+Cheat: delete the network guard's test
+Expect: owner
+
+diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
+index 5b9d936..680fdaf 100644
+--- a/crates/logbook-guard/src/lib.rs
++++ b/crates/logbook-guard/src/lib.rs
+@@ -32,9 +32,4 @@ pub fn deny_network() -> Result<(), GuardError> {
+ mod tests {
+     use super::*;
+ 
+-    /// Until the real block exists, the guard must refuse rather than pretend.
+-    #[test]
+-    fn deny_network_fails_closed_until_implemented() {
+-        assert!(deny_network().is_err());
+-    }
+ }

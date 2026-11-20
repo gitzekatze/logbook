@@ -1,0 +1,16 @@
+Cheat: allow unsafe code for the whole workspace
+Expect: owner
+
+diff --git a/Cargo.toml b/Cargo.toml
+index a4921a3..5c51972 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -42,7 +42,7 @@ strip = true
+ [workspace.lints.rust]
+ # No unsafe code in Logbook's own crates. "forbid" cannot be switched off
+ # further down with #[allow] (build plan, V12).
+-unsafe_code = "forbid"
++unsafe_code = "allow"
+ 
+ [workspace.lints.clippy]
+ # No .unwrap() and no deliberate crashes outside tests: a failure is an

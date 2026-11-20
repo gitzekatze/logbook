@@ -1,0 +1,18 @@
+Cheat: add a claim test that is skipped with #[ignore]
+Expect: owner
+
+diff --git a/crates/logbook-model/src/lib.rs b/crates/logbook-model/src/lib.rs
+index a81ab9f..4ae0dc1 100644
+--- a/crates/logbook-model/src/lib.rs
++++ b/crates/logbook-model/src/lib.rs
+@@ -2,3 +2,10 @@
+ //!
+ //! Phase 0: empty. The claims this crate must prove are in verify/claims.toml
+ //! (Phase 0.4); no code is added before its claims are approved (build plan, V15).
++
++#[cfg(test)]
++mod cheat {
++    #[test]
++    #[ignore]
++    fn c01_1_event_model_fields() {}
++}

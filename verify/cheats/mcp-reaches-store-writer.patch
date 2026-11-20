@@ -1,0 +1,15 @@
+Cheat: the AI interface depends on the store writer (not a protected file)
+Expect: checks
+
+diff --git a/crates/logbook-mcp/Cargo.toml b/crates/logbook-mcp/Cargo.toml
+index 4d80526..fa7ef8d 100644
+--- a/crates/logbook-mcp/Cargo.toml
++++ b/crates/logbook-mcp/Cargo.toml
+@@ -9,6 +9,7 @@ publish = false
+ 
+ [dependencies]
+ logbook-guard.workspace = true
++logbook-store-write = { path = "../logbook-store-write" }
+ 
+ [lints]
+ workspace = true

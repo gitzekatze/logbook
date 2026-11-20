@@ -1,0 +1,16 @@
+Cheat: remove the break list from CI
+Expect: owner
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 305c123..ad7da23 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -39,8 +39,6 @@ jobs:
+         run: python3 scripts/claims-check.py
+       - name: Map check catches every deliberate flaw
+         run: sh scripts/claims-check-selftest.sh
+-      - name: Break list - every deliberate mistake is caught
+-        run: python3 scripts/breaks-check.py
+       - name: Break list tells caught, uncaught, stale and wrong breaks apart
+         run: sh scripts/breaks-check-selftest.sh
+       - name: Cheat list - the gate flags every known way to weaken the checks

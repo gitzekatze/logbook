@@ -1,0 +1,18 @@
+Cheat: the network guard pretends to succeed
+Expect: owner
+
+diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
+index 5b9d936..623c20a 100644
+--- a/crates/logbook-guard/src/lib.rs
++++ b/crates/logbook-guard/src/lib.rs
+@@ -23,9 +23,7 @@ impl std::error::Error for GuardError {}
+ ///
+ /// Phase 0: always fails, so no Logbook program can run without the block.
+ pub fn deny_network() -> Result<(), GuardError> {
+-    Err(GuardError(
+-        "the network block is not implemented yet, so Logbook refuses to run",
+-    ))
++    Ok(())
+ }
+ 
+ #[cfg(test)]

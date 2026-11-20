@@ -7,10 +7,12 @@
 #   make claims     the map check: every due claim proven by a test that ran and passed
 #   make summary    claims per milestone
 #   make breaks     the break list: every deliberate mistake must be caught
+#   make cheats     the cheat list: every known way to weaken the checks must be flagged
+#   make gate BASE=main   does the change since BASE need the owner's approval?
 
 CARGO ?= cargo
 
-.PHONY: all test check selftest fmt clippy arch deny claims summary breaks clean
+.PHONY: all test check selftest fmt clippy arch deny claims summary breaks cheats gate clean
 
 all:
 	$(CARGO) build --workspace --locked
@@ -42,7 +44,14 @@ summary:
 breaks:
 	python3 scripts/breaks-check.py
 
-check: fmt clippy arch deny claims breaks selftest
+cheats:
+	python3 scripts/cheats-check.py
+
+BASE ?= main
+gate:
+	sh scripts/gate-run.sh $(BASE) HEAD
+
+check: fmt clippy arch deny claims breaks selftest cheats
 
 selftest:
 	sh scripts/arch-check-selftest.sh

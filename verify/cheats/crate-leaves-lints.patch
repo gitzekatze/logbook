@@ -1,0 +1,13 @@
+Cheat: a crate leaves the workspace lints (not a protected file)
+Expect: checks
+
+diff --git a/crates/logbook-model/Cargo.toml b/crates/logbook-model/Cargo.toml
+index 0f37c1b..50b8a7e 100644
+--- a/crates/logbook-model/Cargo.toml
++++ b/crates/logbook-model/Cargo.toml
+@@ -10,4 +10,4 @@ publish = false
+ [dependencies]
+ 
+ [lints]
+-workspace = true
++workspace = false

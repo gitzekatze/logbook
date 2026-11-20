@@ -1,0 +1,17 @@
+Cheat: add an outside crate through Cargo.lock
+Expect: owner
+
+diff --git a/Cargo.lock b/Cargo.lock
+index 0f8cb40..b9c3540 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -73,3 +73,9 @@ version = "0.0.0"
+ [[package]]
+ name = "logbook-undo"
+ version = "0.0.0"
++
++[[package]]
++name = "ureq"
++version = "3.0.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0000000000000000000000000000000000000000000000000000000000000000"

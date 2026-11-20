@@ -1,0 +1,16 @@
+Cheat: switch a lint off with #[allow(clippy::unwrap_used)]
+Expect: owner
+
+diff --git a/crates/logbook-model/src/lib.rs b/crates/logbook-model/src/lib.rs
+index a81ab9f..c193a2b 100644
+--- a/crates/logbook-model/src/lib.rs
++++ b/crates/logbook-model/src/lib.rs
+@@ -2,3 +2,8 @@
+ //!
+ //! Phase 0: empty. The claims this crate must prove are in verify/claims.toml
+ //! (Phase 0.4); no code is added before its claims are approved (build plan, V15).
++
++#[allow(clippy::unwrap_used)]
++pub fn first(v: &[u8]) -> u8 {
++    *v.first().unwrap()
++}
