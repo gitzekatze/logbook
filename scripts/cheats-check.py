@@ -156,9 +156,12 @@ def main():
             bad += not ok
 
         bad += scenarios(ws, base, base_gate, base_tests, tmp, env)
-    total = len(cheats) + 4
+    total = len(cheats) + SCENARIOS
     print(f"Cheat list {'passed' if not bad else 'failed'}: {total - bad} of {total} as expected.")
     return 1 if bad else 0
+
+
+SCENARIOS = 7
 
 
 def scenarios(ws, base, base_gate, base_tests, tmp, env):
@@ -194,6 +197,17 @@ def scenarios(ws, base, base_gate, base_tests, tmp, env):
     g, out = gate(base_gate, ws, base, base, base_tests, lost)
     report("test-lost-in-runs-only", g == 1 and "doesn't run and pass now" in out,
            f"a passing test missing from the head's run -> exit {g} (expect 1)")
+
+    # --tests-only (CI's "No test lost"): only the runs count, and no approval.
+    def tests_only(head_tests, *extra):
+        return run([sys.executable, str(base_gate), "--repo", str(ws), base, second, "--tests-only",
+                    "--base-tests", str(base_tests), "--head-tests", str(head_tests), *extra], ws)
+    g, _ = tests_only(base_tests)
+    report("tests-only-ignores-files", g == 0, f"protected file changed, no test lost -> exit {g} (expect 0)")
+    g, _ = tests_only(lost)
+    report("tests-only-finds-lost-test", g == 1, f"a passing test missing from the head's run -> exit {g} (expect 1)")
+    g, _ = tests_only(lost, "--approved-sha", second)
+    report("tests-only-takes-no-approval", g == 2, f"an approval offered for a lost test -> exit {g} (expect 2: refused)")
     return bad
 
 

@@ -2,12 +2,12 @@ Cheat: remove the self-tests from make check
 Expect: owner
 
 diff --git a/Makefile b/Makefile
-index 2151403..77d0d3f 100644
+index edfe77e..c5cab9d 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -51,7 +51,7 @@ BASE ?= main
- gate:
- 	sh scripts/gate-run.sh $(BASE) HEAD
+@@ -54,7 +54,7 @@ gate:
+ lost:
+ 	sh scripts/tests-lost.sh $(BASE)
  
 -check: fmt clippy arch deny claims breaks selftest cheats
 +check: fmt clippy arch deny claims breaks cheats
