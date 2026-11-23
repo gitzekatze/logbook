@@ -25,8 +25,8 @@ runuser -u tester -- python3 -c 'import os, signal; os.kill(os.getpid(), signal.
 note crash user=tester program=python3 signal=SIGSEGV
 sleep 3
 
-note sleep-start mode=freeze seconds=5
-rtcwake -m freeze -s 5 >/dev/null
+note sleep-start mode=mem seconds=10
+rtcwake -m mem -s 10 >/dev/null
 note sleep-end
 sleep 2
 

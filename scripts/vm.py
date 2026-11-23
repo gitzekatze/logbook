@@ -129,6 +129,7 @@ class Computer:
     def __init__(self, disk, seed_img, workdir):
         self.port = free_port()
         self.console = workdir / "console.log"
+        self.monitor = workdir / "monitor.sock"
         cmd = [
             "qemu-system-x86_64", "-enable-kvm", "-cpu", "host",
             "-m", str(MEMORY_MB), "-smp", str(CPUS),
@@ -137,6 +138,10 @@ class Computer:
             "-drive", f"file={seed_img},if=virtio,format=raw,readonly=on",
             "-nic", f"user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:{self.port}-:22",
             "-device", "virtio-rng-pci",
+            # Sleep to memory (S3) is off by default in QEMU; scenarios need it.
+            "-global", "PIIX4_PM.disable_s3=0",
+            # QEMU's monitor, so the harness can wake a sleeping computer.
+            "-monitor", f"unix:{self.monitor},server=on,wait=off",
         ]
         # QEMU dies with the harness, so a stopped or killed run leaves no computer behind.
         self.proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, preexec_fn=die_with_parent)
@@ -177,6 +182,17 @@ class Computer:
         ssh = subprocess.Popen(self.ssh_cmd() + ["sudo", "tar", "-C", remote, "-c", "."], stdout=subprocess.PIPE)
         subprocess.run(["tar", "-C", str(local), "-x"], stdin=ssh.stdout, check=True)
         ssh.wait()
+
+    def wake(self):
+        """Wakes the computer if it sleeps (QEMU's system_wakeup); harmless if awake."""
+        try:
+            with socket.socket(socket.AF_UNIX) as s:
+                s.settimeout(5)
+                s.connect(str(self.monitor))
+                s.sendall(b"system_wakeup\n")
+                time.sleep(0.2)
+        except OSError:
+            pass
 
     def stop(self):
         # Keep the last console output for diagnosis (the run folder is deleted).
@@ -315,7 +331,7 @@ def traces(step, src):
     if a == "crash":
         return any(c.get("sig") == 11 and c.get("uid") == 1000 for c in src["coredumps"])
     if a == "sleep-start":
-        return b"MESSAGE=PM: suspend entry (s2idle)" in src["journal"]
+        return b"MESSAGE=PM: suspend entry (" in src["journal"]
     if a == "sleep-end":
         return b"MESSAGE=PM: suspend exit" in src["journal"]
     if a == "clock-jump":
@@ -355,11 +371,16 @@ def scenario(distro, name, out):
         # it, then checks in (reconnecting as needed) until it has finished.
         c.sh(f"systemd-run --unit=lb-scenario --property=StandardOutput=file:/out/scenario.log "
              f"--property=StandardError=inherit sh /opt/logbook-test/scenarios/{shlex.quote(name)}.sh")
-        end = time.monotonic() + 900
+        started = time.monotonic()
+        end = started + 900
         while True:
             if time.monotonic() > end:
                 raise SystemExit("vm: the scenario didn't finish within 15 minutes")
             time.sleep(5)
+            # The scenario's own alarm should end a sleep; if it doesn't fire
+            # (it may not in a virtual machine), the harness wakes the computer.
+            if time.monotonic() - started > 30:
+                c.wake()
             try:
                 p = c.sh("systemctl show -p ActiveState,Result,ExecMainStatus --value lb-scenario",
                          check=False, capture=True, timeout=30)
