@@ -2,7 +2,7 @@ Cheat: lift the ban on an HTTP client
 Expect: owner
 
 diff --git a/deny.toml b/deny.toml
-index d2c94a6..79b284b 100644
+index 39f066e..b4100f1 100644
 --- a/deny.toml
 +++ b/deny.toml
 @@ -34,7 +34,6 @@ wildcards = "deny"

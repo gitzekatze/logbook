@@ -2,13 +2,13 @@ Cheat: ordinary new code without tests: must NOT need the owner
 Expect: none
 
 diff --git a/crates/logbook-model/src/lib.rs b/crates/logbook-model/src/lib.rs
-index a81ab9f..a5eaf6a 100644
+index 86d96a7..63217a3 100644
 --- a/crates/logbook-model/src/lib.rs
 +++ b/crates/logbook-model/src/lib.rs
 @@ -2,3 +2,6 @@
  //!
  //! Phase 0: empty. The claims this crate must prove are in verify/claims.toml
- //! (Phase 0.4); no code is added before its claims are approved (build plan, V15).
+ //! (step P2); no code is added before its claims are approved (build plan, V15).
 +
 +/// Number of lanes.
 +pub const LANES: usize = 7;

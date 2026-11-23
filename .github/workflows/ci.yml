@@ -1,5 +1,5 @@
-# Logbook CI. Phase 0.1: the static checks. Not active until the repository
-# is on GitHub; Phase 0.2 (owner) adds branch protection and pins every action
+# Logbook CI. Phase 0: the static checks. Not active until the repository
+# is on GitHub; step P5 (owner) adds branch protection and pins every action
 # by its full commit hash before that (build plan, V13).
 name: CI
 
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7 # TODO Phase 0.2: pin by commit hash
+      - uses: actions/checkout@v7 # TODO step P5: pin by commit hash
         with:
           persist-credentials: false
       - name: Rust
@@ -47,4 +47,4 @@ jobs:
         run: python3 scripts/cheats-check.py
 # The gate itself ("Needs your approval") runs in its own workflow from the
 # base branch (pull_request_target) once the repository is on GitHub and the
-# owner has set up Phase 0.2; locally: make gate BASE=<commit>.
+# owner has set up step P5; locally: make gate BASE=<commit>.

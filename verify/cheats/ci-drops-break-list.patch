@@ -2,7 +2,7 @@ Cheat: remove the break list from CI
 Expect: owner
 
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
-index 305c123..ad7da23 100644
+index f5bea87..dcd16a0 100644
 --- a/.github/workflows/ci.yml
 +++ b/.github/workflows/ci.yml
 @@ -39,8 +39,6 @@ jobs:

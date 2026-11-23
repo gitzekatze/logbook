@@ -58,7 +58,7 @@ deny = [
 ]
 # Network features of otherwise allowed crates. VERIFY the exact syntax
 # against the cargo-deny version used in CI before the first dependency
-# arrives (build plan, Phase 0.1).
+# arrives (build plan, step P1).
 features = [
     { crate = "tokio", deny = ["net"] },
 ]
