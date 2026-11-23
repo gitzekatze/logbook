@@ -350,9 +350,32 @@ def scenario(distro, name, out):
         print(f"vm: {out} is not empty; give a new folder")
         return 2
     with booted(distro) as c:
-        c.sh(f"sh /opt/logbook-test/scenarios/{shlex.quote(name)}.sh", timeout=900)
+        # The scenario runs inside the computer as its own service: sleep and
+        # clock jumps may cut the SSH connection, so the harness only starts
+        # it, then checks in (reconnecting as needed) until it has finished.
+        c.sh(f"systemd-run --unit=lb-scenario --property=StandardOutput=file:/out/scenario.log "
+             f"--property=StandardError=inherit sh /opt/logbook-test/scenarios/{shlex.quote(name)}.sh")
+        end = time.monotonic() + 900
+        while True:
+            if time.monotonic() > end:
+                raise SystemExit("vm: the scenario didn't finish within 15 minutes")
+            time.sleep(5)
+            try:
+                p = c.sh("systemctl show -p ActiveState,Result,ExecMainStatus --value lb-scenario",
+                         check=False, capture=True, timeout=30)
+            except subprocess.TimeoutExpired:
+                continue
+            if p.returncode:
+                continue
+            state, result, status = (p.stdout.split() + ["", "", ""])[:3]
+            if state in ("inactive", "failed"):
+                break
         c.sh("sh /opt/logbook-test/scenarios/record.sh", timeout=300)
         c.get("/out", out)
+    log(f"scenario {name}: {result} (exit {status}); its output is in {out / 'scenario.log'}")
+    if result != "success":
+        print(f"WRONG:  the scenario itself failed ({result}, exit {status}); see {out / 'scenario.log'}")
+        return 1
     return check_recording(out)
 
 
