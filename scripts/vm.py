@@ -335,16 +335,48 @@ def traces(step, src):
     if a == "sleep-end":
         return b"MESSAGE=PM: suspend exit" in src["journal"]
     if a == "clock-jump":
-        return b"MESSAGE=Time has been changed" in src["journal"]
+        # The journal stamps each entry with the wall clock and the time since
+        # boot. A clock jump shows as the gap between them growing by the jump
+        # at once (a sleep grows it too, but only by the seconds slept).
+        jump = int(step["by"].strip("+h")) * 3600
+        offsets = [r - m for r, m in src["clocks"]]
+        return any(abs((b - a) / 1e6 - jump) < jump * 0.05 for a, b in zip(offsets, offsets[1:]))
     return False
+
+
+def journal_clocks(data):
+    """(wall clock, time since boot) in microseconds for each entry of a
+    journal export file (systemd's Journal Export Format: text fields are
+    NAME=value lines, binary fields NAME, a 64-bit length and the bytes; an
+    empty line ends an entry)."""
+    out, entry, i = [], {}, 0
+    while i < len(data):
+        nl = data.find(b"\n", i)
+        if nl < 0:
+            break
+        line = data[i:nl]
+        if not line:
+            if "__REALTIME_TIMESTAMP" in entry and "__MONOTONIC_TIMESTAMP" in entry:
+                out.append((int(entry["__REALTIME_TIMESTAMP"]), int(entry["__MONOTONIC_TIMESTAMP"])))
+            entry, i = {}, nl + 1
+        elif b"=" in line:
+            name, _, value = line.partition(b"=")
+            entry[name.decode()] = value.decode(errors="replace")
+            i = nl + 1
+        else:
+            size = int.from_bytes(data[nl + 1:nl + 9], "little")
+            i = nl + 9 + size + 1
+    return out
 
 
 def check_recording(out):
     out = pathlib.Path(out)
     steps = [json.loads(line) for line in (out / "harness.jsonl").read_text().splitlines()]
+    journal = (out / "sources" / "journal.export").read_bytes()
     src = {
         "pacman": (out / "sources" / "pacman.log").read_text(errors="replace"),
-        "journal": (out / "sources" / "journal.export").read_bytes(),
+        "journal": journal,
+        "clocks": journal_clocks(journal),
         "coredumps": json.loads((out / "sources" / "coredumps.json").read_text() or "[]"),
     }
     bad = 0
