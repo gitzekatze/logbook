@@ -2,10 +2,10 @@ Cheat: remove the break list from CI
 Expect: owner
 
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
-index f5bea87..dcd16a0 100644
+index 6c3e0e3..1c8c0f5 100644
 --- a/.github/workflows/ci.yml
 +++ b/.github/workflows/ci.yml
-@@ -39,8 +39,6 @@ jobs:
+@@ -40,8 +40,6 @@ jobs:
          run: python3 scripts/claims-check.py
        - name: Map check catches every deliberate flaw
          run: sh scripts/claims-check-selftest.sh

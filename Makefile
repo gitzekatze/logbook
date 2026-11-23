@@ -12,7 +12,7 @@
 
 CARGO ?= cargo
 
-.PHONY: all test check selftest fmt clippy arch deny claims summary breaks cheats gate clean
+.PHONY: all test check selftest fmt clippy arch deny claims summary breaks cheats gate lost clean
 
 all:
 	$(CARGO) build --workspace --locked
@@ -50,6 +50,9 @@ cheats:
 BASE ?= main
 gate:
 	sh scripts/gate-run.sh $(BASE) HEAD
+
+lost:
+	sh scripts/tests-lost.sh $(BASE)
 
 check: fmt clippy arch deny claims breaks selftest cheats
 

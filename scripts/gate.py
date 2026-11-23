@@ -2,6 +2,7 @@
 """Logbook's gate, "Needs your approval" (build plan V13).
 
     scripts/gate.py BASE HEAD [--base-tests F --head-tests F] [--approved-sha SHA]
+    scripts/gate.py BASE HEAD --tests-only --base-tests F --head-tests F
 
 Says whether a change from BASE to HEAD (two git commits) needs the owner. It
 reads the change only as text through git; it never runs the change's code.
@@ -20,6 +21,12 @@ The owner is needed when the change
      HEAD (deleted, renamed, skipped, failing). This reads the test RUNS
      (--base-tests / --head-tests: `cargo test` output), not the files, so a
      test switched off by any trick shows up here.
+
+On GitHub, items 1-3 run in the "Needs your approval" check
+(.github/workflows/approval.yml, which never runs the change's code), and
+item 4 runs in CI with --tests-only (ci.yml, "No test lost"), because the
+tests have to run. --tests-only checks item 4 alone, and an approval doesn't
+count there: a lost test is fixed, not approved.
 
 Exit codes:  0  nothing needs the owner, or the owner approved exactly HEAD
              1  needs the owner's approval (the reasons are printed)
@@ -156,10 +163,26 @@ def main():
     ap.add_argument("--base-tests")
     ap.add_argument("--head-tests")
     ap.add_argument("--approved-sha")
+    ap.add_argument("--tests-only", action="store_true")
     args = ap.parse_args()
     if bool(args.base_tests) != bool(args.head_tests):
         print("gate: give both --base-tests and --head-tests, or neither")
         return 2
+    if args.tests_only:
+        if not args.base_tests or args.approved_sha:
+            print("gate: --tests-only needs both test runs and takes no approval")
+            return 2
+        if not passed_tests(args.base_tests):
+            print("gate: no passed test in the base run; a comparison with nothing compares nothing")
+            return 2
+        lost = passed_tests(args.base_tests) - passed_tests(args.head_tests)
+        if not lost:
+            print("No test that passed before is lost.")
+            return 0
+        print("## Tests lost")
+        for name in sorted(lost.elements()):
+            print(f"- test passed before but doesn't run and pass now: {name}")
+        return 1
 
     head_sha = git(args.repo, "rev-parse", args.head).strip()
     reasons = reasons_for(args.repo, args.base, args.head, args.base_tests, args.head_tests)

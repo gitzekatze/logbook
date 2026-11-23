@@ -1,0 +1,87 @@
+# "Needs your approval" (build plan V13): says whether a pull request needs
+# the owner, and turns green when the owner sets the label owner-approved on
+# exactly the push they looked at.
+#
+# pull_request_target: GitHub runs THIS file as main has it, never the pull
+# request's copy, so a change can't rewrite the check that judges it (SAM
+# audit P2). The pull request's code is fetched only as data for git to
+# compare; nothing from it is run. Comparing the test runs needs the code to
+# run, so that part (gate item 4) is in CI (ci.yml, "No test lost"), whose
+# file can't change without this check flagging it.
+name: Approval
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: approval-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # An approval is for what the owner saw: a new push or a reopening takes
+  # the label off (SAM audit P3), and the check below ignores it on that
+  # event anyway.
+  forget-approval:
+    if: (github.event.action == 'synchronize' || github.event.action == 'reopened') && contains(github.event.pull_request.labels.*.name, 'owner-approved')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Take the approval off
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: gh pr edit "$PR" --repo "$REPO" --remove-label owner-approved
+
+  owner-approval:
+    name: Needs your approval
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: What in this change needs the owner
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ACTION: ${{ github.event.action }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          # The pull request's commits, as data only.
+          git fetch -q --no-tags origin "+refs/pull/$PR/head:refs/remotes/pr/head"
+          if [ "$(git rev-parse refs/remotes/pr/head)" != "$HEAD_SHA" ]; then
+            echo "The pull request moved while this check ran; the newer push gets its own run." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          # Compare from where the branch left main, so later work on main
+          # doesn't show up as part of this change.
+          BASE=$(git merge-base HEAD "$HEAD_SHA")
+          # The label counts only when it was just set, i.e. by someone
+          # looking at this very push; never on a push or a reopening.
+          set --
+          case "$ACTION" in
+            labeled|unlabeled)
+              case ",$LABELS," in *,owner-approved,*) set -- --approved-sha "$HEAD_SHA" ;; esac ;;
+          esac
+          set +e
+          # scripts/gate.py here is main's copy (the checkout above).
+          python3 scripts/gate.py --repo . "$BASE" "$HEAD_SHA" "$@" > verdict.md
+          rc=$?
+          set -e
+          {
+            if [ $rc -eq 1 ]; then
+              echo "Read the list below. If it is what you want, open the pull request, click **Labels** in the right column and choose **owner-approved**. Only this check runs again (a few seconds) and turns green. A later push takes the label off again."
+              echo
+            fi
+            cat verdict.md
+          }| tee -a "$GITHUB_STEP_SUMMARY"
+          exit $rc

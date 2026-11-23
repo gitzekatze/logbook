@@ -1,6 +1,6 @@
-# Logbook CI. Phase 0: the static checks. Not active until the repository
-# is on GitHub; step P5 (owner) adds branch protection and pins every action
-# by its full commit hash before that (build plan, V13).
+# Logbook CI. Phase 0: the static checks, and on pull requests "No test
+# lost" (gate item 4). Every action is pinned by its full commit hash.
+# The rule on main (step P5) requires this job and "Needs your approval".
 name: CI
 
 on:
@@ -16,9 +16,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7 # TODO step P5: pin by commit hash
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Rust
         run: |
           rustup toolchain install stable --profile minimal --component rustfmt,clippy
@@ -45,6 +46,10 @@ jobs:
         run: sh scripts/breaks-check-selftest.sh
       - name: Cheat list - the gate flags every known way to weaken the checks
         run: python3 scripts/cheats-check.py
-# The gate itself ("Needs your approval") runs in its own workflow from the
-# base branch (pull_request_target) once the repository is on GitHub and the
-# owner has set up step P5; locally: make gate BASE=<commit>.
+      - name: No test lost - every test that passed on main still runs and passes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: sh scripts/tests-lost.sh "origin/$BASE_REF"
+# Items 1-3 of the gate ("Needs your approval") run in approval.yml, as
+# main's copy (pull_request_target); locally: make gate BASE=<commit>.
