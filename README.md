@@ -21,6 +21,12 @@ refuses to start until its network block exists.
   (`scripts/arch-check.py`).
 - Every check has its own test that breaks the rule on purpose
   (`make selftest`).
+- Every security claim has a deliberate break its tests must catch
+  (`verify/breaks/`), and every known way to weaken the checks is a cheat
+  the gate must flag (`verify/cheats/`).
+- Changes to the checks, the claims, the limits or the dependencies wait
+  for the owner: the "Needs your approval" check stays red until the owner
+  sets the label `owner-approved` on exactly that push.
 
 `make check` runs every check, the same as CI.
 
