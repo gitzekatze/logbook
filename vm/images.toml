@@ -1,0 +1,10 @@
+# Test computers (build plan V08, step P6): the official image of each
+# distribution, pinned by its fingerprint. scripts/vm.py refuses an image
+# whose SHA-256 differs. A protected file: changing an image needs the owner.
+
+[arch]
+url = "https://geo.mirror.pkgbuild.com/images/v20261115.625457/Arch-Linux-x86_64-cloudimg-20261115.625457.qcow2"
+sha256 = "dbd02830f6eb0fe07ef6e5edaddbae8b577ce4296d9e79118904704cce0a1f60"
+# What the prepared test computer installs on top (watchers, probes' runtime).
+packages = ["audit", "python"]
+install = "pacman -Syu --noconfirm --needed {packages}"
