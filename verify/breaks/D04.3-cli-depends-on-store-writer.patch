@@ -1,0 +1,28 @@
+Claim: D04.3
+Break: the terminal command depends on the store writer
+Caught-by: test
+
+diff --git a/Cargo.lock b/Cargo.lock
+index 489bb9a..2a4d6e9 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -211,6 +211,7 @@ name = "logbook-cli"
+ version = "0.0.0"
+ dependencies = [
+  "logbook-guard",
++ "logbook-store-write",
+ ]
+ 
+ [[package]]
+diff --git a/crates/logbook-cli/Cargo.toml b/crates/logbook-cli/Cargo.toml
+index 8ccae1b..e5165e1 100644
+--- a/crates/logbook-cli/Cargo.toml
++++ b/crates/logbook-cli/Cargo.toml
+@@ -9,6 +9,7 @@ publish = false
+ 
+ [dependencies]
+ logbook-guard.workspace = true
++logbook-store-write.workspace = true
+ 
+ [lints]
+ workspace = true

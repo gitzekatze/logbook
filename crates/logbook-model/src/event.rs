@@ -6,8 +6,7 @@ use serde_json::{Map, Value};
 use crate::id::{is_simple_name, EventId, ModelError};
 use crate::time::is_canonical_time;
 
-/// The most raw lines an event keeps (F-D03).
-pub const MAX_RAW_LINES: usize = 20;
+pub use crate::raw::MAX_RAW_LINES;
 /// The UTC offsets that exist: UTC-12 to UTC+14, in seconds.
 pub const UTC_OFFSETS: std::ops::RangeInclusive<i32> = -43_200..=50_400;
 

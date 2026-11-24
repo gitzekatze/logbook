@@ -9,6 +9,8 @@ publish = false
 
 [dependencies]
 logbook-guard.workspace = true
+# The collector is the store's only writer (F-D04); it uses it from step 8.
+logbook-store-write.workspace = true
 
 [lints]
 workspace = true

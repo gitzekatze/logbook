@@ -6,6 +6,9 @@
 
 use std::process::ExitCode;
 
+// The collector is the store's only writer (F-D04); it writes from step 8 on.
+use logbook_store_write as _;
+
 fn main() -> ExitCode {
     if let Err(e) = logbook_guard::deny_network() {
         eprintln!("logbook-collector: {e}");

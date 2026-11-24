@@ -2,7 +2,7 @@ Cheat: ordinary new code without tests: must NOT need the owner
 Expect: none
 
 diff --git a/crates/logbook-model/src/lib.rs b/crates/logbook-model/src/lib.rs
-index 3c2891a..6b09224 100644
+index 19825e0..2bfd243 100644
 --- a/crates/logbook-model/src/lib.rs
 +++ b/crates/logbook-model/src/lib.rs
 @@ -33,3 +33,6 @@ pub mod testing;

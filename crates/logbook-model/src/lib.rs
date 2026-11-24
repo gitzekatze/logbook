@@ -19,13 +19,13 @@ pub use event::{
     Event, Lane, Link, LinkStrength, Severity, Source, SourceKind, SourceMode, Subject, SubjectType,
 };
 pub use id::{EventId, ModelError};
-pub use raw::raw_line;
+pub use raw::{raw_line, raw_window, MAX_RAW_LINES};
 pub use time::{is_canonical_time, utc_time};
 
 /// The version of the event schema this crate implements.
 pub const EVENT_SCHEMA_VERSION: u32 = 1;
 
-#[cfg(test)]
+#[cfg(any(test, feature = "testing"))]
 pub mod testing;
 
 // The frozen spec: protected, included unchanged, never reformatted.

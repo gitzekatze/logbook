@@ -1,0 +1,16 @@
+Claim: D04.2
+Break: readers open the store without query_only
+Caught-by: test
+
+diff --git a/crates/logbook-store/src/lib.rs b/crates/logbook-store/src/lib.rs
+index 259ae93..7406f3c 100644
+--- a/crates/logbook-store/src/lib.rs
++++ b/crates/logbook-store/src/lib.rs
+@@ -129,7 +129,6 @@ impl Reader {
+         connection.busy_timeout(BUSY_TIMEOUT)?;
+         // A second layer under the read-only file: even a write that reached
+         // SQLite is refused (F-D04).
+-        connection.execute_batch("PRAGMA query_only = ON")?;
+         schema_version(&connection)?;
+         Ok(Reader { connection })
+     }

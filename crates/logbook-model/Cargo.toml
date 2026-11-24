@@ -7,7 +7,12 @@ license.workspace = true
 rust-version.workspace = true
 publish = false
 
+[features]
+# The test generator any_event(), for other crates' tests.
+testing = ["dep:proptest"]
+
 [dependencies]
+proptest = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
