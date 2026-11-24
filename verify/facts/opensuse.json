@@ -1,0 +1,240 @@
+{
+ "crashes": {
+  "abrt_present": false,
+  "apport_present": false,
+  "core_pattern": "|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h %d %F",
+  "coredump_folder": {
+   "acl": [
+    "user::rwx",
+    "group::r-x",
+    "other::r-x"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/lib/systemd"
+   },
+   "group": "root",
+   "mode": "0o755",
+   "owner": "root",
+   "path": "/var/lib/systemd/coredump",
+   "tester_can_read": true
+  },
+  "coredumpctl_present": true
+ },
+ "firmware": {
+  "dmi_bios_date": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_date",
+   "tester_can_read": true
+  },
+  "dmi_bios_vendor": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_vendor",
+   "tester_can_read": true
+  },
+  "dmi_bios_version": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_version",
+   "tester_can_read": true
+  },
+  "dmi_product_name": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/product_name",
+   "tester_can_read": true
+  },
+  "get_history_json_as_user": {
+   "as": true,
+   "cmd": "timeout 60 fwupdmgr get-history --json 2>&1 | head -c 800",
+   "err": "",
+   "exit": 0,
+   "out": "{\n  \"Error\": {\n    \"Domain\": \"FwupdError\",\n    \"Code\": 9,\n    \"Message\": \"No history\"\n  }\n}\n"
+  },
+  "install_fwupd": {
+   "err": "",
+   "exit": 0
+  }
+ },
+ "journal": {
+  "journal_groups": "systemd-journal:x:480:\nwheel:x:497:",
+  "persistent_folder": {
+   "acl": [
+    "user::rwx",
+    "group::r-x",
+    "other::r-x"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/log"
+   },
+   "group": "systemd-journal",
+   "mode": "0o2755",
+   "owner": "root",
+   "path": "/var/log/journal",
+   "tester_can_read": true
+  },
+  "reads_system_journal_by_group": {
+   "adm": "group doesn't exist",
+   "sudo": "group doesn't exist",
+   "systemd-journal": true,
+   "wheel": false
+  },
+  "storage_setting": "not set (default: persistent if /var/log/journal exists)",
+  "tester_groups": "uid=1000(tester) gid=1000(tester) groups=1000(tester)",
+  "tester_reads_system_journal": {
+   "as": true,
+   "cmd": "journalctl --system -b -n 5 -q --no-pager -o short 2>&1; echo LINES=$(journalctl --system -b -q --no-pager 2>/dev/null | wc -l)",
+   "err": "",
+   "exit": 0,
+   "out": "No journal files were opened due to insufficient permissions.\nLINES=0\n"
+  },
+  "volatile_folder": {
+   "acl": [
+    "user::rwx",
+    "group::r-x",
+    "other::r-x"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/run/log"
+   },
+   "group": "systemd-journal",
+   "mode": "0o2755",
+   "owner": "root",
+   "path": "/run/log/journal",
+   "tester_can_read": true
+  }
+ },
+ "packages": {
+  "install_tree": {
+   "as": "root",
+   "cmd": "zypper -n -q install tree",
+   "err": "",
+   "exit": 0,
+   "out": "\nThe following NEW package is going to be installed:\n  tree\n\n1 new package to install.\n\nPackage download size:    84.2 KiB\n\nPackage install size change:\n              |     148.8 KiB  required by packages that will be installed\n   148.8 KiB  |  -      0 B    released by packages that will be removed\n\nBackend:  classic_rpmtrans\nContinue? [y/n/v/...? shows all options] (y): y\n\n"
+  },
+  "owner_lookup": {
+   "cmd": "rpm -qf /usr/bin/bash",
+   "exit": 0,
+   "out": "bash-5.2.37-160100.2.1.x86_64",
+   "seconds_per_lookup": 0.013
+  },
+  "zypp_conf_history": "grep: /etc/zypp/zypp.conf: No such file or directory\n",
+  "zypp_history": {
+   "acl": [
+    "user::rw-",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o750",
+    "owner": "root",
+    "path": "/var/log/zypp"
+   },
+   "group": "root",
+   "mode": "0o644",
+   "owner": "root",
+   "path": "/var/log/zypp/history",
+   "tester_can_read": false
+  },
+  "zypp_history_tail": "# Header SHA256 digest: OK\n# Header SHA1 digest: OK\n2026-11-24 01:32:12|command|root@testbox|'zypper' '-n' '-q' 'install' 'tree'|\n2026-11-24 01:32:12|install|tree|2.2.1-160100.2.1|x86_64|root@testbox|openSUSE:repo-oss|647c1dcacf55bc30a52cbfa6a372a0b91f5b63e383bda0c1b2162838b52c64dbf1cf10fdeebd7d94cf34854205760322a4c964ebe8050c26c3c7c059d509bbfa|\n",
+  "zypp_logrotate": "cat: /etc/logrotate.d/zypp-history.lr: No such file or directory\ncat: '/etc/logrotate.d/zypper*': No such file or directory\n"
+ },
+ "snap": {
+  "snap_present": false
+ },
+ "snapshots": {
+  "root_filesystem": "xfs",
+  "snapper_present": false,
+  "snapshots_folder": {
+   "exists": false,
+   "path": "/.snapshots"
+  },
+  "timeshift_present": false
+ },
+ "sqlite_secure_delete_wal": {
+  "after_checkpoint": {
+   "t.db": false,
+   "t.db-wal": false
+  },
+  "after_delete": {
+   "t.db": false,
+   "t.db-wal": true
+  },
+  "sqlite": "3.53.2"
+ },
+ "system": {
+  "family": "suse",
+  "id": "opensuse-leap",
+  "kernel": "6.12.0-160100.9-default",
+  "name": "openSUSE Leap 16.1",
+  "systemd": "systemd 257 (257.13+suse.131.g575b4807b7)",
+  "version": "16.1"
+ }
+}

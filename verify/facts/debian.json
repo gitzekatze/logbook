@@ -1,0 +1,215 @@
+{
+ "crashes": {
+  "abrt_present": false,
+  "apport_present": true,
+  "core_pattern": "core",
+  "coredump_folder": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/lib/systemd"
+   },
+   "group": "root",
+   "mode": "0o755",
+   "owner": "root",
+   "path": "/var/lib/systemd/coredump",
+   "tester_can_read": true
+  },
+  "coredumpctl_present": false
+ },
+ "firmware": {
+  "dmi_bios_date": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_date",
+   "tester_can_read": true
+  },
+  "dmi_bios_vendor": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_vendor",
+   "tester_can_read": true
+  },
+  "dmi_bios_version": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_version",
+   "tester_can_read": true
+  },
+  "dmi_product_name": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/product_name",
+   "tester_can_read": true
+  },
+  "get_history_json_as_user": {
+   "as": true,
+   "cmd": "timeout 60 fwupdmgr get-history --json 2>&1 | head -c 800",
+   "err": "",
+   "exit": 0,
+   "out": "{\n  \"Error\" : {\n    \"Domain\" : \"FwupdError\",\n    \"Code\" : 9,\n    \"Message\" : \"No history\"\n  }\n}\n"
+  },
+  "install_fwupd": {
+   "err": "",
+   "exit": 0
+  }
+ },
+ "journal": {
+  "journal_groups": "systemd-journal:x:999:\nadm:x:4:",
+  "persistent_folder": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/log"
+   },
+   "group": "systemd-journal",
+   "mode": "0o2755",
+   "owner": "root",
+   "path": "/var/log/journal",
+   "tester_can_read": true
+  },
+  "reads_system_journal_by_group": {
+   "adm": true,
+   "sudo": false,
+   "systemd-journal": true,
+   "wheel": "group doesn't exist"
+  },
+  "storage_setting": "not set (default: persistent if /var/log/journal exists)",
+  "tester_groups": "uid=1000(tester) gid=1000(tester) groups=1000(tester)",
+  "tester_reads_system_journal": {
+   "as": true,
+   "cmd": "journalctl --system -b -n 5 -q --no-pager -o short 2>&1; echo LINES=$(journalctl --system -b -q --no-pager 2>/dev/null | wc -l)",
+   "err": "",
+   "exit": 0,
+   "out": "No journal files were opened due to insufficient permissions.\nLINES=0\n"
+  },
+  "volatile_folder": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/run/log"
+   },
+   "group": "systemd-journal",
+   "mode": "0o2755",
+   "owner": "root",
+   "path": "/run/log/journal",
+   "tester_can_read": true
+  }
+ },
+ "packages": {
+  "apt_history": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/log/apt"
+   },
+   "group": "root",
+   "mode": "0o644",
+   "owner": "root",
+   "path": "/var/log/apt/history.log",
+   "tester_can_read": true
+  },
+  "apt_history_tail": "\nStart-Date: 2026-11-24  01:35:23\nCommandline: apt-get install -yq tree\nRequested-By: tester (1000)\nInstall: tree:amd64 (2.2.1-1)\nEnd-Date: 2026-11-24  01:35:24\n",
+  "dpkg_log": {
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/log"
+   },
+   "group": "root",
+   "mode": "0o644",
+   "owner": "root",
+   "path": "/var/log/dpkg.log",
+   "tester_can_read": true
+  },
+  "dpkg_log_rotated": "-rw-r--r-- 1 root root  738 Nov 24 01:35 /var/log/dpkg.log\n\n/var/log/apt/:\ntotal 24\n-rw-r--r-- 1 root root 12316 Nov 24 01:35 eipp.log.xz\n-rw-r--r-- 1 root root   161 Nov 24 01:35 history.log\n-rw-r----- 1 root adm    890 Nov 24 01:35 term.log\n",
+  "dpkg_log_tail": "2026-11-24 01:35:23 status unpacked tree:amd64 2.2.1-1\n2026-11-24 01:35:23 status half-configured tree:amd64 2.2.1-1\n2026-11-24 01:35:23 status installed tree:amd64 2.2.1-1\n2026-11-24 01:35:23 trigproc man-db:amd64 2.13.1-1 <none>\n2026-11-24 01:35:23 status half-configured man-db:amd64 2.13.1-1\n2026-11-24 01:35:24 status installed man-db:amd64 2.13.1-1\n",
+  "install_tree": {
+   "as": "root",
+   "cmd": "apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -yq tree",
+   "err": "",
+   "exit": 0,
+   "out": "bian-security trixie-security/main amd64 Packages [309 kB]\nGet:18 https://deb.debian.org/debian-security trixie-security/main Translation-en [187 kB]\nFetched 28.7 MB in 2s (16.8 MB/s)\nReading package lists...\nReading package lists...\nBuilding dependency tree...\nReading state information...\nThe following NEW packages will be installed:\n  tree\n0 upgraded, 1 newly installed, 0 to remove and 25 not upgraded.\nNeed to get 59.4 kB of archives.\nAfter this operation, 132 kB of additional disk space will be used.\nGet:1 file:/etc/apt/mirrors/debian.list Mirrorlist [30 B]\nGet:2 https://deb.debian.org/debian trixie/main amd64 tree amd64 2.2.1-1 [59.4 kB]\nFetched 59.4 kB in 0s (719 kB/s)\nSelecting previously unselected package tree.\n(Reading database ... \n(Reading database ... 5%\n(Reading database ... 10%\n(Reading database ... 15%\n(Reading database ... 20%\n(Reading database ... 25%\n(Reading database ... 30%\n(Reading database ... 35%\n(Reading database ... 40%\n(Reading database ... 45%\n(Reading database ... 50%\n(Reading database ... 55%\n(Reading database ... 60%\n(Reading database ... 65%\n(Reading database ... 70%\n(Reading database ... 75%\n(Reading database ... 80%\n(Reading database ... 85%\n(Reading database ... 90%\n(Reading database ... 95%\n(Reading database ... 100%\n(Reading database ... 20629 files and directories currently installed.)\nPreparing to unpack .../tree_2.2.1-1_amd64.deb ...\nUnpacking tree (2.2.1-1) ...\nSetting up tree (2.2.1-1) ...\nProcessing triggers for man-db (2.13.1-1) ...\n"
+  },
+  "logrotate_dpkg": "/var/log/dpkg.log {\n\tmonthly\n\trotate 12\n\tcompress\n\tdelaycompress\n\tmissingok\n\tnotifempty\n\tcreate 644 root root\n}\n/var/log/apt/term.log {\n  rotate 12\n  monthly\n  compress\n  missingok\n  notifempty\n}\n\n/var/log/apt/history.log {\n  rotate 12\n  monthly\n  compress\n  missingok\n  notifempty\n}\n\n",
+  "owner_lookup": {
+   "cmd": "dpkg -S /usr/bin/bash",
+   "exit": 0,
+   "out": "bash: /usr/bin/bash",
+   "seconds_per_lookup": 0.013
+  }
+ },
+ "snap": {
+  "snap_present": false
+ },
+ "snapshots": {
+  "root_filesystem": "ext4",
+  "snapper_present": false,
+  "snapshots_folder": {
+   "exists": false,
+   "path": "/.snapshots"
+  },
+  "timeshift_present": false
+ },
+ "sqlite_secure_delete_wal": {
+  "after_checkpoint": {
+   "t.db": false,
+   "t.db-wal": false
+  },
+  "after_delete": {
+   "t.db": false,
+   "t.db-wal": true
+  },
+  "sqlite": "3.46.1"
+ },
+ "system": {
+  "family": "debian",
+  "id": "debian",
+  "kernel": "6.12.117+deb13-cloud-amd64",
+  "name": "Debian GNU/Linux 13 (trixie)",
+  "systemd": "systemd 257 (257.13-1~deb13u1)",
+  "version": "13"
+ }
+}

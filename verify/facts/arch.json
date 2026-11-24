@@ -1,0 +1,256 @@
+{
+ "crashes": {
+  "abrt_present": false,
+  "apport_present": false,
+  "core_pattern": "@@/run/systemd/coredumpd/kernel",
+  "coredump_folder": {
+   "acl": [
+    "user::rwx",
+    "group::r-x",
+    "other::r-x"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/lib/systemd"
+   },
+   "group": "root",
+   "mode": "0o755",
+   "owner": "root",
+   "path": "/var/lib/systemd/coredump",
+   "tester_can_read": true
+  },
+  "coredumpctl_present": true
+ },
+ "firmware": {
+  "dmi_bios_date": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_date",
+   "tester_can_read": true
+  },
+  "dmi_bios_vendor": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_vendor",
+   "tester_can_read": true
+  },
+  "dmi_bios_version": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/bios_version",
+   "tester_can_read": true
+  },
+  "dmi_product_name": {
+   "acl": [
+    "user::r--",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/sys/class/dmi/id"
+   },
+   "group": "root",
+   "mode": "0o444",
+   "owner": "root",
+   "path": "/sys/class/dmi/id/product_name",
+   "tester_can_read": true
+  },
+  "get_history_json_as_user": {
+   "as": true,
+   "cmd": "timeout 60 fwupdmgr get-history --json 2>&1 | head -c 800",
+   "err": "",
+   "exit": 0,
+   "out": "{\n  \"Error\": {\n    \"Domain\": \"FwupdError\",\n    \"Code\": 9,\n    \"Message\": \"No history\"\n  }\n}\n"
+  },
+  "install_fwupd": {
+   "err": "",
+   "exit": 0
+  }
+ },
+ "journal": {
+  "journal_groups": "systemd-journal:x:981:\nadm:x:999:daemon\nwheel:x:998:",
+  "persistent_folder": {
+   "acl": [
+    "user::rwx",
+    "group::r-x",
+    "group:wheel:r-x",
+    "group:adm:r-x",
+    "mask::r-x",
+    "other::r-x",
+    "default:user::rwx",
+    "default:group::r-x",
+    "default:group:wheel:r-x",
+    "default:group:adm:r-x",
+    "default:mask::r-x",
+    "default:other::r-x"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/log"
+   },
+   "group": "systemd-journal",
+   "mode": "0o2755",
+   "owner": "root",
+   "path": "/var/log/journal",
+   "tester_can_read": true
+  },
+  "reads_system_journal_by_group": {
+   "adm": true,
+   "sudo": "group doesn't exist",
+   "systemd-journal": true,
+   "wheel": true
+  },
+  "storage_setting": "not set (default: persistent if /var/log/journal exists)",
+  "tester_groups": "uid=1000(tester) gid=1000(tester) groups=1000(tester)",
+  "tester_reads_system_journal": {
+   "as": true,
+   "cmd": "journalctl --system -b -n 5 -q --no-pager -o short 2>&1; echo LINES=$(journalctl --system -b -q --no-pager 2>/dev/null | wc -l)",
+   "err": "",
+   "exit": 0,
+   "out": "No journal files were opened due to insufficient permissions.\nLINES=0\n"
+  },
+  "volatile_folder": {
+   "acl": [
+    "user::rwx",
+    "group::r-x",
+    "group:wheel:r-x",
+    "group:adm:r-x",
+    "mask::r-x",
+    "other::r-x",
+    "default:user::rwx",
+    "default:group::r-x",
+    "default:group:wheel:r-x",
+    "default:group:adm:r-x",
+    "default:mask::r-x",
+    "default:other::r-x"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/run/log"
+   },
+   "group": "systemd-journal",
+   "mode": "0o2755",
+   "owner": "root",
+   "path": "/run/log/journal",
+   "tester_can_read": true
+  }
+ },
+ "packages": {
+  "install_tree": {
+   "as": "root",
+   "cmd": "pacman -Sy --noconfirm tree",
+   "err": "",
+   "exit": 0,
+   "out": ":: Synchronizing package databases...\n core downloading...\n extra downloading...\nresolving dependencies...\nlooking for conflicting packages...\n\nPackages (1) tree-2.3.2-1\n\nTotal Download Size:   0.04 MiB\nTotal Installed Size:  0.09 MiB\n\n:: Proceed with installation? [Y/n] \n:: Retrieving packages...\n tree-2.3.2-1-x86_64 downloading...\nchecking keyring...\nchecking package integrity...\nloading package files...\nchecking for file conflicts...\nchecking available disk space...\n:: Processing package changes...\ninstalling tree...\n:: Running post-transaction hooks...\n(1/1) Arming ConditionNeedsUpdate...\n"
+  },
+  "owner_lookup": {
+   "cmd": "pacman -Qo /usr/bin/bash",
+   "exit": 0,
+   "out": "/usr/bin/bash is owned by bash 5.3.20-1",
+   "seconds_per_lookup": 0.032
+  },
+  "pacman_log": {
+   "acl": [
+    "user::rw-",
+    "group::r--",
+    "other::r--"
+   ],
+   "exists": true,
+   "folder": {
+    "group": "root",
+    "mode": "0o755",
+    "owner": "root",
+    "path": "/var/log"
+   },
+   "group": "root",
+   "mode": "0o644",
+   "owner": "root",
+   "path": "/var/log/pacman.log",
+   "tester_can_read": true
+  },
+  "pacman_log_tail": "[2026-11-24T01:33:14+0000] [ALPM] installed tree (2.3.2-1)\n[2026-11-24T01:33:14+0000] [ALPM] transaction completed\n[2026-11-24T01:33:14+0000] [ALPM] running '35-systemd-update.hook'...\n"
+ },
+ "snap": {
+  "snap_present": false
+ },
+ "snapshots": {
+  "root_filesystem": "btrfs",
+  "snapper_present": false,
+  "snapshots_folder": {
+   "exists": false,
+   "path": "/.snapshots"
+  },
+  "timeshift_present": false
+ },
+ "sqlite_secure_delete_wal": {
+  "after_checkpoint": {
+   "t.db": false,
+   "t.db-wal": false
+  },
+  "after_delete": {
+   "t.db": false,
+   "t.db-wal": true
+  },
+  "sqlite": "3.54.1"
+ },
+ "system": {
+  "family": "arch",
+  "id": "arch",
+  "kernel": "7.3.4-arch1-2",
+  "name": "Arch Linux",
+  "systemd": "systemd 262 (262.2-1-arch)",
+  "version": null
+ }
+}

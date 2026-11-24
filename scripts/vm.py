@@ -5,6 +5,7 @@
     scripts/vm.py run DISTRO CMD [OUT]  boot a throwaway copy, run CMD as root, fetch /out to OUT
     scripts/vm.py shell DISTRO          boot a throwaway copy and open a shell (for people)
     scripts/vm.py selftest DISTRO       prove every watcher (vm/guest/watch) with its probe
+    scripts/vm.py facts DISTRO OUT      collect the VERIFY facts on an untouched copy (vm/guest/facts.py)
     scripts/vm.py day DISTRO SEED OUT   act out the fresh day of SEED (scripts/freshday.py),
                                         record it to OUT and compare the reader with the harness
 
@@ -54,8 +55,8 @@ def images():
         return tomllib.load(f)
 
 
-def sha256(path):
-    h = hashlib.sha256()
+def digest(path, algo):
+    h = hashlib.new(algo)
     with open(path, "rb") as f:
         for block in iter(lambda: f.read(1 << 20), b""):
             h.update(block)
@@ -72,9 +73,10 @@ def base_image(distro):
         part = path.with_suffix(".part")
         subprocess.run(["curl", "-fL", "--proto", "=https", "-o", str(part), spec["url"]], check=True)
         part.rename(path)
-    got = sha256(path)
-    if got != spec["sha256"]:
-        raise SystemExit(f"vm: {path.name}: fingerprint {got} is not the pinned {spec['sha256']}; refusing it")
+    algo = "sha512" if "sha512" in spec else "sha256"
+    got = digest(path, algo)
+    if got != spec[algo]:
+        raise SystemExit(f"vm: {path.name}: {algo} {got} is not the pinned {spec[algo]}; refusing it")
     return path
 
 
@@ -234,6 +236,8 @@ def prepare(distro, force=False):
             c.wait()
             c.sh("cloud-init status --wait >/dev/null || true")
             c.sh(spec["install"].format(packages=" ".join(spec["packages"])))
+            if spec.get("setup"):
+                c.sh(spec["setup"])
             # A fixed state for every run: no automatic time sync (scenarios move the
             # clock themselves), so nothing may wait for it at boot; journal kept on disk.
             c.sh("systemctl disable --now systemd-timesyncd 2>/dev/null || true; "
@@ -247,19 +251,23 @@ def prepare(distro, force=False):
 
 
 @contextlib.contextmanager
-def booted(distro):
-    """A throwaway copy of the prepared computer, with vm/guest/ copied in."""
-    disk = prepare(distro)
+def booted(distro, pristine=False):
+    """A throwaway copy of the prepared computer, with vm/guest/ copied in.
+    pristine: a copy of the distribution's untouched image instead, for facts
+    about the system as it ships (nothing installed or changed by us)."""
+    disk = base_image(distro) if pristine else prepare(distro)
     runs = TARGET / "runs"
     runs.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=runs) as tmp:
         tmp = pathlib.Path(tmp)
         overlay = tmp / "disk.qcow2"
-        subprocess.run(["qemu-img", "create", "-q", "-f", "qcow2", "-b", str(disk), "-F", "qcow2", str(overlay)],
-                       check=True)
+        subprocess.run(["qemu-img", "create", "-q", "-f", "qcow2", "-b", str(disk), "-F", "qcow2", str(overlay)]
+                       + ([DISK] if pristine else []), check=True)
         c = Computer(overlay, seed(distro, tmp), tmp)
         try:
             c.wait()
+            if pristine:
+                c.sh("cloud-init status --wait >/dev/null || true")
             c.put(GUEST, "/opt/logbook-test")
             c.sh("mkdir -p /out && chmod 755 /out")
             yield c
@@ -368,6 +376,16 @@ def day(distro, seed, out):
     return 1 if n else 0
 
 
+def facts(distro, out):
+    """Facts about the distribution as it ships (the VERIFY points of the
+    function list), collected by vm/guest/facts.py on a pristine copy."""
+    with booted(distro, pristine=True) as c:
+        c.sh("python3 /opt/logbook-test/facts.py /out/facts.json", timeout=1800)
+        c.get("/out", pathlib.Path(out))
+    print((pathlib.Path(out) / "facts.json").read_text())
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -376,6 +394,7 @@ def main():
     p = sub.add_parser("shell"); p.add_argument("distro")
     p = sub.add_parser("selftest"); p.add_argument("distro")
     p = sub.add_parser("day"); p.add_argument("distro"); p.add_argument("seed", type=int); p.add_argument("out")
+    p = sub.add_parser("facts"); p.add_argument("distro"); p.add_argument("out")
     a = ap.parse_args()
     if a.distro not in images():
         print(f"vm: unknown test computer {a.distro!r}; known: {', '.join(images())}")
@@ -392,6 +411,8 @@ def main():
         return shell(a.distro)
     if a.cmd == "day":
         return day(a.distro, a.seed, a.out)
+    if a.cmd == "facts":
+        return facts(a.distro, a.out)
     return selftest(a.distro)
 
 
