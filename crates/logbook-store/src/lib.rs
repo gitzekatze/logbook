@@ -25,6 +25,9 @@ pub const STORE_SCHEMA_VERSION: u32 = 1;
 pub const STORE_SCHEMA: &str = include_str!("../../../schema/store-v1.sql");
 /// The database file in the store folder.
 pub const DB_FILE: &str = "logbook.db";
+/// A reader's connection: read-only (with query_only on top, F-D04).
+const READ_FLAGS: OpenFlags =
+    OpenFlags::SQLITE_OPEN_READ_ONLY.union(OpenFlags::SQLITE_OPEN_NO_MUTEX);
 /// How long a connection waits for another one's lock before giving up.
 pub const BUSY_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -122,10 +125,7 @@ impl Reader {
         if !db.is_file() {
             return Err(StoreError::Missing(db));
         }
-        let connection = Connection::open_with_flags(
-            &db,
-            OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
-        )?;
+        let connection = Connection::open_with_flags(&db, READ_FLAGS)?;
         connection.busy_timeout(BUSY_TIMEOUT)?;
         // A second layer under the read-only file: even a write that reached
         // SQLite is refused (F-D04).

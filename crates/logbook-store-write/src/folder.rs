@@ -11,6 +11,24 @@ use rustix::io::Errno;
 pub const FOLDER_MODE: u32 = 0o700;
 pub const FILE_MODE: u32 = 0o600;
 
+/// The store folder: a real folder, not followed if it is a link.
+const FOLDER_OPEN: OFlags = OFlags::RDONLY
+    .union(OFlags::DIRECTORY)
+    .union(OFlags::NOFOLLOW)
+    .union(OFlags::CLOEXEC);
+/// A file in it, for checking: not followed if it is a link; NONBLOCK, so a
+/// FIFO doesn't make the open wait for a writer.
+const FILE_OPEN: OFlags = OFlags::RDONLY
+    .union(OFlags::NOFOLLOW)
+    .union(OFlags::NONBLOCK)
+    .union(OFlags::CLOEXEC);
+/// A new store file: only if nothing is there yet, never through a link.
+const FILE_CREATE: OFlags = OFlags::WRONLY
+    .union(OFlags::CREATE)
+    .union(OFlags::EXCL)
+    .union(OFlags::NOFOLLOW)
+    .union(OFlags::CLOEXEC);
+
 fn unsafe_store(why: String) -> StoreError {
     StoreError::Unsafe(why)
 }
@@ -25,8 +43,7 @@ fn io(e: Errno) -> StoreError {
 /// 0700/0600 through the opened files. Returns what it had to fix.
 pub fn secure(dir: &Path) -> Result<Vec<PathBuf>, StoreError> {
     let mut fixed = Vec::new();
-    let flags = OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC;
-    let folder = match rustix::fs::open(dir, flags, Mode::empty()) {
+    let folder = match rustix::fs::open(dir, FOLDER_OPEN, Mode::empty()) {
         Ok(fd) => fd,
         Err(Errno::NOENT) => {
             if let Some(parent) = dir.parent() {
@@ -71,9 +88,7 @@ pub fn secure(dir: &Path) -> Result<Vec<PathBuf>, StoreError> {
 /// Checks one file in the store folder without following a link; returns
 /// whether its mode had to be restored to 0600.
 fn secure_file(path: &Path) -> Result<bool, StoreError> {
-    // NONBLOCK: opening a FIFO must not wait for a writer.
-    let flags = OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC;
-    let file = match rustix::fs::open(path, flags, Mode::empty()) {
+    let file = match rustix::fs::open(path, FILE_OPEN, Mode::empty()) {
         Ok(fd) => fd,
         Err(Errno::LOOP) => return Err(unsafe_store(format!("{} is a link", path.display()))),
         Err(e) => return Err(io(e)),
@@ -107,7 +122,24 @@ fn secure_file(path: &Path) -> Result<bool, StoreError> {
 /// Creates a new, empty store file with 0600 from the first moment; fails if
 /// anything is already there.
 pub fn create_file(path: &Path) -> Result<(), StoreError> {
-    let flags = OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::NOFOLLOW | OFlags::CLOEXEC;
-    rustix::fs::open(path, flags, Mode::from_raw_mode(FILE_MODE)).map_err(io)?;
+    rustix::fs::open(path, FILE_CREATE, Mode::from_raw_mode(FILE_MODE)).map_err(io)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A regular file where the store folder belongs is refused as unsafe,
+    /// not taken for a folder or reported as a mere read error.
+    #[test]
+    fn a_file_where_the_store_folder_belongs_is_refused() {
+        let root = std::env::temp_dir().join(format!("logbook-folder-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let dir = root.join("logbook");
+        std::fs::write(&dir, b"not a folder").unwrap();
+        assert!(matches!(secure(&dir), Err(StoreError::Unsafe(_))));
+        std::fs::remove_dir_all(&root).unwrap();
+    }
 }

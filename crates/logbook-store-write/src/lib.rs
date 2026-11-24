@@ -29,8 +29,12 @@ pub const DEFAULT_SIZE_LIMIT: u64 = 500 * 1024 * 1024;
 /// The longest retention a lane can have: a hundred years.
 pub const MAX_RETENTION_DAYS: u32 = 36_500;
 const DAY_MICROS: i64 = 86_400_000_000;
-/// Events deleted per transaction while enforcing the size limit.
-const PRUNE_BATCH: usize = 20;
+/// The writer's connection.
+const WRITE_FLAGS: OpenFlags =
+    OpenFlags::SQLITE_OPEN_READ_WRITE.union(OpenFlags::SQLITE_OPEN_NO_MUTEX);
+/// The health check's connection: read-only, so checking changes nothing.
+const CHECK_FLAGS: OpenFlags =
+    OpenFlags::SQLITE_OPEN_READ_ONLY.union(OpenFlags::SQLITE_OPEN_NO_MUTEX);
 
 /// What [`Writer::open`] had to do.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
@@ -108,10 +112,7 @@ impl Writer {
         } else {
             folder::create_file(&db)?;
         }
-        let connection = Connection::open_with_flags(
-            &db,
-            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX,
-        )?;
+        let connection = Connection::open_with_flags(&db, WRITE_FLAGS)?;
         connection.busy_timeout(BUSY_TIMEOUT)?;
         let version = schema_version(&connection)?;
         connection.execute_batch(
@@ -216,65 +217,65 @@ impl Writer {
         now_micros: i64,
     ) -> Result<SizeReport, StoreError> {
         let mut report = SizeReport::default();
-        if self.used_bytes()? <= limit {
-            return Ok(report);
-        }
         self.now = now_micros;
-        let note_id = self.note_id("logbook.pruned_early")?;
-        loop {
-            let mut deleted = false;
-            while self.used_bytes()? > limit && self.delete_lowest(limit, &mut report)? {
-                deleted = true;
-            }
-            // The note itself takes room: record it, then prune on if that
-            // put the store over the limit again and anything is left.
+        let mut note_id = None;
+        // The note takes room too: record it after each round of deleting,
+        // and go on while it pushes the store over the limit again and
+        // anything is left to delete.
+        while self.delete_until(limit, &mut report)? > 0 {
+            let id = match &note_id {
+                Some(id) => EventId::clone(id),
+                None => note_id
+                    .insert(self.note_id("logbook.pruned_early")?)
+                    .clone(),
+            };
             let note = self.note_event(
-                note_id.clone(),
+                id,
                 "logbook.pruned_early",
                 "The store reached its size limit, so old events were deleted earlier than their lane's retention.",
                 json!({ "info": report.info, "problem": report.problem, "serious": report.serious }),
             )?;
             self.insert(&note)?;
-            if self.used_bytes()? <= limit || !deleted {
-                break;
-            }
         }
-        self.checkpoint()?;
+        if note_id.is_some() {
+            self.checkpoint()?;
+        }
         Ok(report)
     }
 
-    /// Deletes the lowest-ranked events, one transaction for up to
-    /// PRUNE_BATCH of them, until the store is under `limit`. False when
-    /// nothing was left to delete.
-    fn delete_lowest(&mut self, limit: u64, report: &mut SizeReport) -> Result<bool, StoreError> {
-        let tx = self.connection.unchecked_transaction()?;
-        let mut deleted_any = false;
-        for _ in 0..PRUNE_BATCH {
-            let mut next = None;
-            for severity in Severity::ALL {
-                let mut query = tx.prepare_cached(
-                    "SELECT id FROM events WHERE severity = ?1 AND lane != 'logbook' ORDER BY time, id LIMIT 1",
-                )?;
-                let mut rows = query.query([severity.as_str()])?;
-                if let Some(row) = rows.next()? {
-                    next = Some((severity, row.get::<_, String>(0)?));
-                    break;
-                }
-            }
-            let Some((severity, id)) = next else { break };
-            tx.execute("DELETE FROM events WHERE id = ?1", [&id])?;
+    /// Deletes the lowest-ranked event (info before problem before serious,
+    /// oldest first, never the logbook lane) until the store is under
+    /// `limit`. Returns how many it deleted.
+    fn delete_until(&mut self, limit: u64, report: &mut SizeReport) -> Result<u64, StoreError> {
+        let mut deleted = 0;
+        while self.used_bytes()? > limit {
+            let Some((severity, id)) = self.lowest()? else {
+                break;
+            };
+            self.connection
+                .execute("DELETE FROM events WHERE id = ?1", [&id])?;
             match severity {
                 Severity::Info => report.info += 1,
                 Severity::Problem => report.problem += 1,
                 Severity::Serious => report.serious += 1,
             }
-            deleted_any = true;
-            if self.used_bytes()? <= limit {
-                break;
+            deleted += 1;
+        }
+        Ok(deleted)
+    }
+
+    /// The event the size limit deletes next, if any.
+    fn lowest(&self) -> Result<Option<(Severity, String)>, StoreError> {
+        let mut query = self.connection.prepare_cached(
+            "SELECT id FROM events WHERE severity = ?1 AND lane != 'logbook' ORDER BY time, id LIMIT 1",
+        )?;
+        for severity in Severity::ALL {
+            let mut rows = query.query([severity.as_str()])?;
+            if let Some(row) = rows.next()? {
+                return Ok(Some((severity, row.get(0)?)));
             }
         }
-        tx.commit()?;
-        Ok(deleted_any)
+        Ok(None)
     }
 
     /// Empties the WAL into the database, so deleted content is gone from
@@ -359,10 +360,7 @@ fn retained_from(event: &Event, stored_at: &str) -> String {
 /// (that is an error, not damage) and passes SQLite's quick check. Opened
 /// read-only: a check must never change what it checks.
 fn is_healthy(db: &Path) -> Result<bool, StoreError> {
-    let Ok(c) = Connection::open_with_flags(
-        db,
-        OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
-    ) else {
+    let Ok(c) = Connection::open_with_flags(db, CHECK_FLAGS) else {
         return Ok(false);
     };
     match schema_version(&c) {
@@ -409,3 +407,79 @@ fn move_aside(dir: &Path, now_micros: i64) -> Result<PathBuf, StoreError> {
 #[rustfmt::skip]
 #[path = "../../../verify/spec/step2/store_spec.rs"]
 mod spec_step2;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use logbook_store::Reader;
+
+    const NOW: i64 = 1_795_521_600_000_000;
+
+    fn temp(name: &str) -> (PathBuf, PathBuf) {
+        let root =
+            std::env::temp_dir().join(format!("logbook-writer-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let dir = root.join("logbook");
+        (root, dir)
+    }
+
+    fn event(n: u64, lane: &str, raw: Vec<String>) -> Event {
+        let id = EventId::derive("test", &n.to_le_bytes(), 0).unwrap();
+        serde_json::from_value(json!({
+            "id": id.as_str(), "time": utc_time(NOW - n as i64).unwrap(), "last_time": null, "end": null,
+            "utc_offset": 0, "lane": lane, "kind": "test.example", "template": "test.example", "severity": "info",
+            "subject": {"type": "system", "name": "x", "version": null, "source_kind": "none", "package": null, "path": null},
+            "summary": "Example.", "details": {}, "count": 1, "first_time": false, "links": [], "raw": raw,
+            "raw_omitted": 0, "raw_lossy": false, "source": {"reader": "test", "mode": "live"},
+            "rules_version": 1, "time_uncertain": false
+        }))
+        .unwrap()
+    }
+
+    /// Over the limit with nothing deletable left (only the logbook lane):
+    /// the size limit ends, deletes nothing and records nothing.
+    #[test]
+    fn size_limit_with_only_the_logbook_lane_left_ends_without_a_note() {
+        let (root, dir) = temp("logbook-only");
+        let (mut w, _) = Writer::open(&dir, NOW).unwrap();
+        for n in 0..20 {
+            w.insert(&event(n, "logbook", vec!["l".repeat(500); 4]))
+                .unwrap();
+        }
+        let report = w.enforce_size_limit(1, NOW).unwrap();
+        assert_eq!(report, SizeReport::default());
+        drop(w);
+        let events = Reader::open(&dir).unwrap().events().unwrap();
+        assert_eq!(events.len(), 20);
+        assert!(events.iter().all(|e| e.kind != "logbook.pruned_early"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    /// The size limit deletes no more than it must: one large event over a
+    /// store that was exactly at the limit, and only that event goes.
+    #[test]
+    fn size_limit_deletes_exactly_enough() {
+        let (root, dir) = temp("exact");
+        let (mut w, _) = Writer::open(&dir, NOW).unwrap();
+        for n in 1..40 {
+            w.insert(&event(n, "system", vec!["s".repeat(200)]))
+                .unwrap();
+        }
+        let limit = w.used_bytes().unwrap();
+        // The oldest event, large enough to need pages of its own.
+        w.insert(&event(1000, "system", vec!["L".repeat(1000); 20]))
+            .unwrap();
+        assert!(w.used_bytes().unwrap() > limit);
+        let report = w.enforce_size_limit(limit, NOW).unwrap();
+        assert_eq!(
+            report,
+            SizeReport {
+                info: 1,
+                problem: 0,
+                serious: 0
+            }
+        );
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}
