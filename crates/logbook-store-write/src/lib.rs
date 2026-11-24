@@ -349,8 +349,8 @@ fn retained_from(event: &Event, stored_at: &str) -> String {
     .flatten()
     .max()
     .map_or_else(String::new, Clone::clone);
-    if event.time_uncertain && stored_at > latest.as_str() {
-        stored_at.to_owned()
+    if event.time_uncertain {
+        latest.max(stored_at.to_owned())
     } else {
         latest
     }
