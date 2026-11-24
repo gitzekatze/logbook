@@ -173,7 +173,11 @@ def standin(day, broken=None):
     for c in json.loads((src / "coredumps.json").read_text() or "[]"):
         sig = c["sig"] + (1 if broken == "wrong-signal" else 0)
         out.append(("crash", program_of(c["exe"]), sig))
-    entries = [e for e in journal_entries((src / "journal.export").read_bytes()) if e[1] >= start["since_boot_us"]]
+    # The day's entries, plus the last one before it: a clock jump as the
+    # day's first step shows only against what came just before.
+    every = journal_entries((src / "journal.export").read_bytes())
+    first = next((i for i, e in enumerate(every) if e[1] >= start["since_boot_us"]), len(every))
+    entries = every[max(first - 1, 0):]
     sleeps = sum(1 for e in entries if e[2].startswith("PM: suspend entry ("))
     if broken != "drop-sleeps":
         out += [("sleep",)] * sleeps
@@ -239,6 +243,7 @@ def fake_day(seed, folder):
     harness, pac, cores, journal = [], [], [], []
     real, mono = 1_800_000_000_000_000, 60_000_000
     versions = {}
+    journal.append((real - 1_000_000, mono - 1_000_000, "before the day"))
 
     def tick(seconds):
         nonlocal real, mono
@@ -282,7 +287,7 @@ def fake_day(seed, folder):
     (folder / "sources" / "pacman.log").write_text("".join(f"[2026-01-01T00:00:00+0000] {l}\n" for l in pac))
     (folder / "sources" / "coredumps.json").write_text(json.dumps(cores))
     (folder / "sources" / "journal.export").write_bytes(export)
-    (folder / "sources" / "start.json").write_text(json.dumps({"since_boot_us": 0}))
+    (folder / "sources" / "start.json").write_text(json.dumps({"since_boot_us": 60_000_000}))
     return p
 
 
@@ -313,7 +318,12 @@ def selftest():
         valid &= kinds == set(KINDS)
     report(valid, "every day has each kind of step, and each step can happen where it is")
     report(plan(7, "arch", pk) != plan(7, "debian", pk), "the same seed gives another day on another distribution")
-    for seed in (1, 2, 3, 42, 1234):
+    # Seeds 1-5 and days that start with each kind of step (found, not assumed).
+    firsts = {}
+    for s in range(1000):
+        firsts.setdefault(plan(s, packages=pk)["steps"][0]["kind"], s)
+    report(set(firsts) == set(KINDS) - {"remove"}, "days start with every kind of step that can come first")
+    for seed in sorted({1, 2, 3, 4, 5, *firsts.values()}):
         with tempfile.TemporaryDirectory() as tmp:
             fake_day(seed, tmp)
             lines = []
