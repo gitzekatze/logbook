@@ -2,10 +2,10 @@ Cheat: allow unsafe code for the whole workspace
 Expect: owner
 
 diff --git a/Cargo.toml b/Cargo.toml
-index a4921a3..5c51972 100644
+index 2ac1dc6..0192b3b 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -42,7 +42,7 @@ strip = true
+@@ -51,7 +51,7 @@ strip = true
  [workspace.lints.rust]
  # No unsafe code in Logbook's own crates. "forbid" cannot be switched off
  # further down with #[allow] (build plan, V12).

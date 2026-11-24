@@ -2,11 +2,11 @@ Cheat: a crate leaves the workspace lints (not a protected file)
 Expect: checks
 
 diff --git a/crates/logbook-model/Cargo.toml b/crates/logbook-model/Cargo.toml
-index 0f37c1b..50b8a7e 100644
+index eeee0ce..00a1815 100644
 --- a/crates/logbook-model/Cargo.toml
 +++ b/crates/logbook-model/Cargo.toml
-@@ -10,4 +10,4 @@ publish = false
- [dependencies]
+@@ -17,4 +17,4 @@ proptest.workspace = true
+ regex.workspace = true
  
  [lints]
 -workspace = true

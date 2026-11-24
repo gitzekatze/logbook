@@ -10,9 +10,12 @@ The code pull request includes the step's files unchanged, for example in
 
 ```rust
 #[cfg(test)]
+#[rustfmt::skip]
 #[path = "../../../verify/spec/step1/model_spec.rs"]
 mod spec_step1;
 ```
+
+`#[rustfmt::skip]` keeps `cargo fmt` from rewriting the frozen file.
 
 Test names start with the claim they prove (`c12_1_…`, `g7_…`). Once one claim
 of a step has a test in the run, every claim of that step is due

@@ -3,3 +3,8 @@
 # Saved failing cases of property tests; written next to the test file,
 # which for spec tests is the protected verify/spec/ folder.
 *.proptest-regressions
+# Output of test tools that write into the repository (incident 2026-11-24):
+# mutation testing, fuzzing artifacts, coverage data.
+/mutants.out*/
+/fuzz/artifacts/
+*.profraw
