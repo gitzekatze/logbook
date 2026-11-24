@@ -32,6 +32,15 @@ rust-version = "1.92"
 # Each Logbook crate is added here when the first crate uses it.
 logbook-guard = { path = "crates/logbook-guard" }
 
+# Outside crates: each one approved by the owner (gate, Cargo.lock).
+# default-features = false where defaults pull in more than Logbook uses.
+serde = { version = "1.0.229", default-features = false, features = ["std", "derive"] }
+serde_json = { version = "1.0.154", default-features = false, features = ["std"] }
+sha2 = { version = "0.10.9", default-features = false }
+# Tests only.
+proptest = { version = "1.12.0", default-features = false, features = ["std"] }
+regex = { version = "1.13.2", default-features = false, features = ["std", "unicode"] }
+
 [profile.release]
 lto = "thin"
 codegen-units = 4
