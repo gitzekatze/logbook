@@ -1,0 +1,21 @@
+# Mutation testing (build plan V10, section 6): the share of deliberate code
+# changes (mutants) each crate's tests must catch. scripts/mutants-check.py
+# reads cargo-mutants' results against these numbers. A protected file:
+# lowering a threshold needs the owner.
+
+[threshold]
+logbook-model = 95
+logbook-derive = 95
+logbook-redact = 95
+logbook-render = 95
+logbook-guard = 95
+logbook-exec = 95
+logbook-store-write = 95
+logbook-readers = 85
+logbook-collector = 85
+logbook-cli = 85
+logbook-mcp = 85
+logbook-query = 85
+logbook-undo = 85
+logbook-gtk = 70
+logbook-store = 85

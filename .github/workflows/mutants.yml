@@ -1,0 +1,96 @@
+# Mutation testing (build plan V10) on GitHub's runners: cargo-mutants makes
+# small deliberate changes to the code, and the tests must notice each one.
+# On a pull request it tests the crates whose code changed; on main and by
+# hand, every crate with code. scripts/mutants-check.py then holds each crate
+# to its threshold (verify/mutation.toml) and fails on any survivor that
+# isn't accepted with a reason (verify/mutants-accepted.toml).
+name: Mutation testing
+
+on:
+  pull_request:
+    paths:
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "verify/mutation.toml"
+      - "verify/mutants-accepted.toml"
+      - "scripts/mutants-check.py"
+      - ".github/workflows/mutants.yml"
+  push:
+    branches: [main]
+    paths:
+      - "crates/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutants:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+      - name: cargo-mutants, built once and kept
+        id: tool
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cargo/bin/cargo-mutants
+          key: cargo-mutants-27.1.0
+      - name: Install cargo-mutants 27.1.0
+        if: steps.tool.outputs.cache-hit != 'true'
+        run: cargo install --locked cargo-mutants --version 27.1.0
+      - name: Which crates
+        id: crates
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # On a pull request: the crates whose code changed, or every crate
+          # when the mutation setup itself changed. Otherwise every crate.
+          all=$(ls crates)
+          changed=$all
+          if [ "$EVENT" = pull_request ]; then
+            files=$(git diff --name-only "origin/$BASE_REF...HEAD")
+            if ! echo "$files" | grep -qE '^(verify/mutation\.toml|verify/mutants-accepted\.toml|scripts/mutants-check\.py|\.github/workflows/mutants\.yml)$'; then
+              changed=$(echo "$files" | sed -n 's|^crates/\([^/]*\)/.*\.rs$|\1|p' | sort -u)
+            fi
+          fi
+          list=""
+          for c in $changed; do
+            # A crate whose only code is a doc comment has nothing to mutate.
+            if grep -rqsE '^\s*(pub\s+)?(fn|impl|struct|enum|const)\b' "crates/$c/src"; then list="$list $c"; fi
+          done
+          echo "crates=$list" >> "$GITHUB_OUTPUT"
+          echo "Crates to mutate:${list:- none (no crate code changed)}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Mutants
+        if: steps.crates.outputs.crates != ''
+        env:
+          CRATES: ${{ steps.crates.outputs.crates }}
+        run: |
+          for c in $CRATES; do
+            set +e
+            cargo mutants --package "$c" --jobs 3 --output "target/mutants/$c"
+            rc=$?
+            set -e
+            # 0 all caught, 2 some missed, 3 some timed out: the check below judges.
+            # Anything else (4: the unchanged code fails its tests) is a failure.
+            case $rc in 0|2|3) ;; *) echo "cargo-mutants on $c ended with $rc"; exit 1 ;; esac
+          done
+      - name: Mutation check - thresholds met, every survivor fixed or accepted
+        if: steps.crates.outputs.crates != ''
+        run: python3 scripts/mutants-check.py target/mutants/*
+      - name: Keep the results
+        if: always() && steps.crates.outputs.crates != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mutants
+          path: target/mutants/*/mutants.out/*.txt
+          retention-days: 14

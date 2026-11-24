@@ -44,6 +44,8 @@ jobs:
         run: python3 scripts/breaks-check.py
       - name: Break list tells caught, uncaught, stale and wrong breaks apart
         run: sh scripts/breaks-check-selftest.sh
+      - name: Mutation check tells survivors, thresholds and stale entries apart
+        run: sh scripts/mutants-check-selftest.sh
       - name: Fresh days - same seed same day, every broken reader noticed
         run: python3 scripts/freshday.py selftest
       - name: Cheat list - the gate flags every known way to weaken the checks
