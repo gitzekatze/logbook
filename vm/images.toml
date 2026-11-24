@@ -1,13 +1,43 @@
-# Test computers (build plan V08, step P6): the official image of each
-# distribution, pinned by its fingerprint. scripts/vm.py refuses an image
-# whose SHA-256 differs. A protected file: changing an image needs the owner.
+# Test computers (build plan V08, steps P6 and P8): the official cloud image
+# of each distribution, pinned by the fingerprint the distribution publishes
+# (sha256, or sha512 for Debian). scripts/vm.py refuses an image whose
+# fingerprint differs. A protected file: changing an image needs the owner.
+#
+# packages / install: what the prepared test computer adds (watchers,
+#   probes' runtime, crash records through systemd-coredump).
+# setup: commands after the install (optional).
+# pool: packages a fresh day (scripts/freshday.py) installs, upgrades and
+#   removes; only where the fresh-day executor knows the package manager.
 
 [arch]
 url = "https://geo.mirror.pkgbuild.com/images/v20261115.625457/Arch-Linux-x86_64-cloudimg-20261115.625457.qcow2"
 sha256 = "dbd02830f6eb0fe07ef6e5edaddbae8b577ce4296d9e79118904704cce0a1f60"
-# What the prepared test computer installs on top (watchers, probes' runtime).
 packages = ["audit", "python"]
 install = "pacman -Syu --noconfirm --needed {packages}"
-# Fresh days (scripts/freshday.py) install, upgrade and remove packages from
-# this pool: small, real packages from the distribution's servers.
 pool = ["bc", "dos2unix", "figlet", "htop", "jq", "lsof", "nano", "ncdu", "pv", "tree", "unzip", "zip"]
+
+[debian]
+url = "https://cloud.debian.org/images/cloud/trixie/20261116-2664/debian-13-genericcloud-amd64-20261116-2664.qcow2"
+sha512 = "37cb32b320820417eb04b335afcf489bfb4cecce4a957190d09cb2bffbe02b56a1cadd62d78c6ead92aa7839d5ea65e4260f994bbb4b54490df59fdf11ee1d97"
+packages = ["auditd", "python3", "systemd-coredump"]
+install = "apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -yq {packages}"
+
+[ubuntu]
+url = "https://cloud-images.ubuntu.com/releases/resolute/release-20261108/ubuntu-26.04-server-cloudimg-amd64.img"
+sha256 = "7b90593f5532b49b7e3fe3d2743f0d1f0d822e5b07cebcd8e00c0df8069ecab9"
+packages = ["auditd", "python3", "systemd-coredump"]
+install = "apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -yq {packages}"
+# Ubuntu's own crash catcher (apport) would take the crashes from systemd-coredump.
+setup = "systemctl disable --now apport.service 2>/dev/null || true"
+
+[fedora]
+url = "https://dl.fedoraproject.org/pub/fedora/linux/releases/45/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-45-1.4.x86_64.qcow2"
+sha256 = "50bdc5e70f6a24f540932d15411c1c6ae9fcfa40fb990d876d83c5cc823b2ad0"
+packages = ["audit", "python3"]
+install = "dnf install -y -q {packages}"
+
+[opensuse]
+url = "https://download.opensuse.org/distribution/leap/16.1/appliances/Leap-16.1-Minimal-VM.x86_64-Cloud-Build3.21.qcow2"
+sha256 = "d30c848752e54d3e05d1c07de8438c4f0cbd23fc690e402942ae61e08d00c911"
+packages = ["audit", "python3", "systemd-coredump"]
+install = "zypper -n -q install {packages}"

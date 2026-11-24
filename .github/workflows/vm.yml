@@ -1,8 +1,10 @@
-# Test computers (build plan V08, step P6) and fresh days (V04, step P7):
+# Test computers (build plan V08, steps P6 and P8) and fresh days (V04, P7):
 # throwaway virtual machines on GitHub's runners, never on the owner's
-# computer. The watchers prove themselves with their probes; then a fresh day,
-# decided by a seed picked at run time, is acted out, recorded and compared.
-# A failed day is replayed by running this workflow by hand with its seed.
+# computer, one job per distribution. On each, the watchers prove themselves
+# with their probes, and facts.py records how the distribution ships (the
+# VERIFY points). On Arch, a fresh day decided by a seed picked at run time
+# is acted out, recorded and compared. A failed day is replayed by running
+# this workflow by hand with its seed.
 name: Test computers
 
 on:
@@ -29,9 +31,14 @@ permissions:
   contents: read
 
 jobs:
-  arch:
+  test-computer:
+    name: ${{ matrix.distro }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [arch, debian, ubuntu, fedora, opensuse]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -48,12 +55,21 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: target/vm/*.qcow2
-          key: vm-image-${{ hashFiles('vm/images.toml') }}
+          key: vm-image-${{ matrix.distro }}-${{ hashFiles('vm/images.toml') }}
+      - name: Facts about the distribution as it ships (VERIFY points)
+        env:
+          DISTRO: ${{ matrix.distro }}
+        run: python3 scripts/vm.py facts "$DISTRO" target/vm/facts
       - name: Prepare the test computer
-        run: python3 scripts/vm.py prepare arch
+        env:
+          DISTRO: ${{ matrix.distro }}
+        run: python3 scripts/vm.py prepare "$DISTRO"
       - name: Watchers prove themselves - every probe caught, the quiet one not
-        run: python3 scripts/vm.py selftest arch
+        env:
+          DISTRO: ${{ matrix.distro }}
+        run: python3 scripts/vm.py selftest "$DISTRO"
       - name: Pick the day
+        if: matrix.distro == 'arch'
         id: day
         env:
           SEED_IN: ${{ inputs.seed }}
@@ -62,6 +78,7 @@ jobs:
           echo "seed=$seed" >> "$GITHUB_OUTPUT"
           echo "Fresh day seed: **$seed** (replay: run this workflow by hand with this seed)" >> "$GITHUB_STEP_SUMMARY"
       - name: A fresh day - acted out, recorded, the reader compared with the harness
+        if: matrix.distro == 'arch'
         env:
           SEED: ${{ steps.day.outputs.seed }}
         run: python3 scripts/vm.py day arch "$SEED" target/vm/day
@@ -69,9 +86,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-computer-arch
+          name: test-computer-${{ matrix.distro }}
           path: |
             target/vm/last-console.log
             target/vm/day/
+            target/vm/facts/
           if-no-files-found: ignore
           retention-days: 14
