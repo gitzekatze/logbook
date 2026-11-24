@@ -28,7 +28,9 @@ fn event_id() -> impl Strategy<Value = EventId> {
         prop::collection::vec(any::<u8>(), 0..24),
         0u32..4,
     )
-        .prop_map(|(reader, position, part)| EventId::derive(&reader, &position, part).unwrap())
+        .prop_map(|(reader, position, part)| {
+            EventId::derive(&reader, &position, part).expect("the generated reader name is valid")
+        })
 }
 
 fn subject() -> impl Strategy<Value = Subject> {
@@ -140,9 +142,10 @@ pub fn any_event() -> impl Strategy<Value = Event> {
                 let folded = count > 1;
                 Event {
                     id,
-                    time: utc_time(time).unwrap(),
-                    last_time: folded.then(|| utc_time(time + last.unwrap_or(1)).unwrap()),
-                    end: end.map(|d| utc_time(time + d).unwrap()),
+                    time: utc_time(time).expect("the generated time is in range"),
+                    last_time: folded
+                        .then(|| utc_time(time + last.unwrap_or(1)).expect("in range")),
+                    end: end.map(|d| utc_time(time + d).expect("in range")),
                     utc_offset,
                     lane,
                     kind,

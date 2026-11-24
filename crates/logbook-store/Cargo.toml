@@ -8,6 +8,12 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
+logbook-model.workspace = true
+rusqlite.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+rusqlite.workspace = true
 
 [lints]
 workspace = true

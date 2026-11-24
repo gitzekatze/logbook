@@ -2,7 +2,7 @@ Cheat: hide tests behind a feature nobody turns on
 Expect: owner
 
 diff --git a/crates/logbook-model/src/lib.rs b/crates/logbook-model/src/lib.rs
-index 3c2891a..883ac59 100644
+index 19825e0..06a1654 100644
 --- a/crates/logbook-model/src/lib.rs
 +++ b/crates/logbook-model/src/lib.rs
 @@ -33,3 +33,9 @@ pub mod testing;

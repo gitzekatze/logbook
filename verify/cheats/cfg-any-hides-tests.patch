@@ -2,7 +2,7 @@ Cheat: hide a test module with #[cfg(any())], always false
 Expect: owner
 
 diff --git a/crates/logbook-model/src/lib.rs b/crates/logbook-model/src/lib.rs
-index 3c2891a..e246b9e 100644
+index 19825e0..06d97ae 100644
 --- a/crates/logbook-model/src/lib.rs
 +++ b/crates/logbook-model/src/lib.rs
 @@ -33,3 +33,9 @@ pub mod testing;

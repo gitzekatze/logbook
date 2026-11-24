@@ -78,7 +78,9 @@ jobs:
           for c in $CRATES; do
             set +e
             mkdir -p "target/mutants/$c"
-            cargo mutants --package "$c" --jobs 3 --output "target/mutants/$c"
+            # Every test of the workspace judges each mutant: a crate is often
+            # tested by another one's spec (the model by the store's, for example).
+            cargo mutants --package "$c" --test-workspace=true --jobs 3 --output "target/mutants/$c"
             rc=$?
             set -e
             # 0 all caught, 2 some missed, 3 some timed out: the check below judges.

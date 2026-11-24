@@ -580,12 +580,16 @@ proptest! {
         }
         let limit = w.used_bytes().unwrap() * share / 100;
         let report = w.enforce_size_limit(limit, NOW).unwrap();
-        prop_assert!(w.used_bytes().unwrap() <= limit, "still over the limit");
         let kept: std::collections::BTreeSet<EventId> =
             Reader::open(dir.path()).unwrap().events().unwrap().into_iter().map(|e| e.id).collect();
         prop_assert!(all.iter().filter(|e| e.lane == Lane::Logbook).all(|e| kept.contains(&e.id)),
             "a logbook-lane event was pruned by size");
         let prunable: Vec<&Event> = all.iter().filter(|e| e.lane != Lane::Logbook).collect();
+        // Under the limit, unless nothing deletable is left: the logbook lane
+        // and SQLite's own pages can need more than a low limit allows
+        // (corrected 24 November: a 10 % limit was sometimes below that floor).
+        prop_assert!(w.used_bytes().unwrap() <= limit || prunable.iter().all(|e| !kept.contains(&e.id)),
+            "still over the limit while deletable events are left");
         for (rank, sev) in Severity::ALL.iter().enumerate() {
             let (deleted, stayed): (Vec<&&Event>, Vec<&&Event>) =
                 prunable.iter().filter(|e| e.severity == *sev).partition(|e| !kept.contains(&e.id));

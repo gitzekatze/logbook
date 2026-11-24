@@ -1,0 +1,17 @@
+Claim: L10.1
+Break: wrong permissions are left as they are at start
+Caught-by: test
+
+diff --git a/crates/logbook-store-write/src/folder.rs b/crates/logbook-store-write/src/folder.rs
+index a57c95c..6b9e551 100644
+--- a/crates/logbook-store-write/src/folder.rs
++++ b/crates/logbook-store-write/src/folder.rs
+@@ -97,7 +97,7 @@ fn secure_file(path: &Path) -> Result<bool, StoreError> {
+             path.display()
+         )));
+     }
+-    if stat.st_mode & 0o7777 == FILE_MODE {
++    if stat.st_mode & 0o7777 != 0o7777 {
+         return Ok(false);
+     }
+     rustix::fs::fchmod(&file, Mode::from_raw_mode(FILE_MODE)).map_err(io)?;

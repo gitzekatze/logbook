@@ -2,7 +2,7 @@ Cheat: turn a failing test into a passing one with #[should_panic]
 Expect: owner
 
 diff --git a/crates/logbook-model/src/lib.rs b/crates/logbook-model/src/lib.rs
-index 3c2891a..c76df83 100644
+index 19825e0..c184406 100644
 --- a/crates/logbook-model/src/lib.rs
 +++ b/crates/logbook-model/src/lib.rs
 @@ -33,3 +33,12 @@ pub mod testing;
