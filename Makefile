@@ -60,6 +60,7 @@ selftest:
 	sh scripts/arch-check-selftest.sh
 	sh scripts/claims-check-selftest.sh
 	sh scripts/breaks-check-selftest.sh
+	python3 scripts/freshday.py selftest
 
 clean:
 	$(CARGO) clean

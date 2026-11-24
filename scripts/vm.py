@@ -5,9 +5,8 @@
     scripts/vm.py run DISTRO CMD [OUT]  boot a throwaway copy, run CMD as root, fetch /out to OUT
     scripts/vm.py shell DISTRO          boot a throwaway copy and open a shell (for people)
     scripts/vm.py selftest DISTRO       prove every watcher (vm/guest/watch) with its probe
-    scripts/vm.py scenario DISTRO NAME OUT
-                                        act out vm/guest/scenarios/NAME.sh, record the day to
-                                        OUT and check that every step left its trace
+    scripts/vm.py day DISTRO SEED OUT   act out the fresh day of SEED (scripts/freshday.py),
+                                        record it to OUT and compare the reader with the harness
 
 A test computer is the distribution's official image (vm/images.toml, pinned
 by its SHA-256), started with QEMU. "prepare" boots it once, creates the test
@@ -317,119 +316,56 @@ def selftest(distro):
     return 1 if bad else 0
 
 
-# Where each harness step must leave a trace in the recorded sources. This is
-# what makes a recording trustworthy as a test day: the harness log says what
-# happened, and the sources must show it independently.
-def traces(step, src):
-    a = step["action"]
-    if a == "install":
-        return f"[ALPM] installed {step['package']} ({step['version']})" in src["pacman"]
-    if a == "upgrade":
-        return f"[ALPM] upgraded {step['package']} ({step['from']} -> {step['to']})" in src["pacman"]
-    if a == "remove":
-        return f"[ALPM] removed {step['package']} (" in src["pacman"]
-    if a == "crash":
-        return any(c.get("sig") == 11 and c.get("uid") == 1000 for c in src["coredumps"])
-    if a == "sleep-start":
-        return b"MESSAGE=PM: suspend entry (" in src["journal"]
-    if a == "sleep-end":
-        return b"MESSAGE=PM: suspend exit" in src["journal"]
-    if a == "clock-jump":
-        # The journal stamps each entry with the wall clock and the time since
-        # boot. A clock jump shows as the gap between them growing by the jump
-        # at once (a sleep grows it too, but only by the seconds slept).
-        jump = int(step["by"].strip("+h")) * 3600
-        offsets = [r - m for r, m in src["clocks"]]
-        return any(abs((b - a) / 1e6 - jump) < jump * 0.05 for a, b in zip(offsets, offsets[1:]))
-    return False
+def run_service(c, name, command, minutes=15):
+    """Runs COMMAND inside the computer as its own service and waits for it.
+    A sleep or clock jump may cut the SSH connection, so the harness only
+    starts the service, then checks in (reconnecting as needed). If the
+    computer's own alarm doesn't end a sleep, the harness wakes it."""
+    c.sh(f"systemd-run --unit={name} --property=StandardOutput=file:/out/{name}.log "
+         f"--property=StandardError=inherit {command}")
+    started = time.monotonic()
+    while True:
+        if time.monotonic() - started > minutes * 60:
+            raise SystemExit(f"vm: {name} didn't finish within {minutes} minutes")
+        time.sleep(5)
+        if time.monotonic() - started > 30:
+            c.wake()
+        try:
+            p = c.sh(f"systemctl show -p ActiveState,Result,ExecMainStatus --value {name}",
+                     check=False, capture=True, timeout=30)
+        except subprocess.TimeoutExpired:
+            continue
+        if p.returncode:
+            continue
+        state, result, status = (p.stdout.split() + ["", "", ""])[:3]
+        if state in ("inactive", "failed"):
+            return result, status
 
 
-def journal_clocks(data):
-    """(wall clock, time since boot) in microseconds for each entry of a
-    journal export file (systemd's Journal Export Format: text fields are
-    NAME=value lines, binary fields NAME, a 64-bit length and the bytes; an
-    empty line ends an entry)."""
-    out, entry, i = [], {}, 0
-    while i < len(data):
-        nl = data.find(b"\n", i)
-        if nl < 0:
-            break
-        line = data[i:nl]
-        if not line:
-            if "__REALTIME_TIMESTAMP" in entry and "__MONOTONIC_TIMESTAMP" in entry:
-                out.append((int(entry["__REALTIME_TIMESTAMP"]), int(entry["__MONOTONIC_TIMESTAMP"])))
-            entry, i = {}, nl + 1
-        elif b"=" in line:
-            name, _, value = line.partition(b"=")
-            entry[name.decode()] = value.decode(errors="replace")
-            i = nl + 1
-        else:
-            size = int.from_bytes(data[nl + 1:nl + 9], "little")
-            i = nl + 9 + size + 1
-    return out
-
-
-def check_recording(out):
-    out = pathlib.Path(out)
-    steps = [json.loads(line) for line in (out / "harness.jsonl").read_text().splitlines()]
-    journal = (out / "sources" / "journal.export").read_bytes()
-    src = {
-        "pacman": (out / "sources" / "pacman.log").read_text(errors="replace"),
-        "journal": journal,
-        "clocks": journal_clocks(journal),
-        "coredumps": json.loads((out / "sources" / "coredumps.json").read_text() or "[]"),
-    }
-    bad = 0
-    for step in steps:
-        ok = traces(step, src)
-        bad += not ok
-        print(f"{'right' if ok else 'WRONG'}:  {step['action']} left its trace in the sources"
-              if ok else f"WRONG:  {step['action']} left no trace in the sources: {step}")
-    if not steps:
-        print("WRONG:  the harness log is empty; a recording of nothing proves nothing")
-        bad += 1
-    print(f"Recording check {'passed' if not bad else 'failed'}: {len(steps) - bad} of {len(steps)} steps traced.")
-    return 1 if bad else 0
-
-
-def scenario(distro, name, out):
+def day(distro, seed, out):
+    """Acts out the fresh day of SEED (scripts/freshday.py), records it to OUT
+    and compares the reader's events with what the harness did."""
+    sys.path.insert(0, str(REPO / "scripts"))
+    import freshday
     out = pathlib.Path(out)
     if out.exists() and any(out.iterdir()):
         print(f"vm: {out} is not empty; give a new folder")
         return 2
+    plan = freshday.plan(seed, distro)
+    log(f"fresh day, seed {seed}: " + ", ".join(s["kind"] for s in plan["steps"]))
     with booted(distro) as c:
-        # The scenario runs inside the computer as its own service: sleep and
-        # clock jumps may cut the SSH connection, so the harness only starts
-        # it, then checks in (reconnecting as needed) until it has finished.
-        c.sh(f"systemd-run --unit=lb-scenario --property=StandardOutput=file:/out/scenario.log "
-             f"--property=StandardError=inherit sh /opt/logbook-test/scenarios/{shlex.quote(name)}.sh")
-        started = time.monotonic()
-        end = started + 900
-        while True:
-            if time.monotonic() > end:
-                raise SystemExit("vm: the scenario didn't finish within 15 minutes")
-            time.sleep(5)
-            # The scenario's own alarm should end a sleep; if it doesn't fire
-            # (it may not in a virtual machine), the harness wakes the computer.
-            if time.monotonic() - started > 30:
-                c.wake()
-            try:
-                p = c.sh("systemctl show -p ActiveState,Result,ExecMainStatus --value lb-scenario",
-                         check=False, capture=True, timeout=30)
-            except subprocess.TimeoutExpired:
-                continue
-            if p.returncode:
-                continue
-            state, result, status = (p.stdout.split() + ["", "", ""])[:3]
-            if state in ("inactive", "failed"):
-                break
+        c.sh(f"printf '%s' {shlex.quote(json.dumps(plan))} > /out/plan.json")
+        result, status = run_service(c, "lb-day", "python3 /opt/logbook-test/scenarios/fresh-day.py /out/plan.json")
         c.sh("sh /opt/logbook-test/scenarios/record.sh", timeout=300)
         c.get("/out", out)
-    log(f"scenario {name}: {result} (exit {status}); its output is in {out / 'scenario.log'}")
     if result != "success":
-        print(f"WRONG:  the scenario itself failed ({result}, exit {status}); see {out / 'scenario.log'}")
+        print(f"WRONG:  the day itself failed ({result}, exit {status}); see {out}/day.log and {out}/lb-day.log")
+        print(f"Replay it with: scripts/vm.py day {distro} {seed} NEW-FOLDER")
         return 1
-    return check_recording(out)
+    n = freshday.check_day(out)
+    print(f"Fresh day {seed} {'passed' if not n else 'failed'}."
+          + ("" if not n else f" Replay it with: scripts/vm.py day {distro} {seed} NEW-FOLDER"))
+    return 1 if n else 0
 
 
 def main():
@@ -439,7 +375,7 @@ def main():
     p = sub.add_parser("run"); p.add_argument("distro"); p.add_argument("command"); p.add_argument("out", nargs="?")
     p = sub.add_parser("shell"); p.add_argument("distro")
     p = sub.add_parser("selftest"); p.add_argument("distro")
-    p = sub.add_parser("scenario"); p.add_argument("distro"); p.add_argument("name"); p.add_argument("out")
+    p = sub.add_parser("day"); p.add_argument("distro"); p.add_argument("seed", type=int); p.add_argument("out")
     a = ap.parse_args()
     if a.distro not in images():
         print(f"vm: unknown test computer {a.distro!r}; known: {', '.join(images())}")
@@ -454,8 +390,8 @@ def main():
         return run(a.distro, a.command, a.out)
     if a.cmd == "shell":
         return shell(a.distro)
-    if a.cmd == "scenario":
-        return scenario(a.distro, a.name, a.out)
+    if a.cmd == "day":
+        return day(a.distro, a.seed, a.out)
     return selftest(a.distro)
 
 

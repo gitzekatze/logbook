@@ -8,3 +8,6 @@ sha256 = "dbd02830f6eb0fe07ef6e5edaddbae8b577ce4296d9e79118904704cce0a1f60"
 # What the prepared test computer installs on top (watchers, probes' runtime).
 packages = ["audit", "python"]
 install = "pacman -Syu --noconfirm --needed {packages}"
+# Fresh days (scripts/freshday.py) install, upgrade and remove packages from
+# this pool: small, real packages from the distribution's servers.
+pool = ["bc", "dos2unix", "figlet", "htop", "jq", "lsof", "nano", "ncdu", "pv", "tree", "unzip", "zip"]

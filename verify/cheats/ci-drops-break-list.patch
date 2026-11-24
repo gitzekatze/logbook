@@ -2,7 +2,7 @@ Cheat: remove the break list from CI
 Expect: owner
 
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
-index 6c3e0e3..1c8c0f5 100644
+index ccde8d7..48cefd5 100644
 --- a/.github/workflows/ci.yml
 +++ b/.github/workflows/ci.yml
 @@ -40,8 +40,6 @@ jobs:
@@ -13,4 +13,4 @@ index 6c3e0e3..1c8c0f5 100644
 -        run: python3 scripts/breaks-check.py
        - name: Break list tells caught, uncaught, stale and wrong breaks apart
          run: sh scripts/breaks-check-selftest.sh
-       - name: Cheat list - the gate flags every known way to weaken the checks
+       - name: Fresh days - same seed same day, every broken reader noticed
