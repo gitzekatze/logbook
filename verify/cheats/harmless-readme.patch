@@ -2,7 +2,7 @@ Cheat: a harmless wording change: must NOT need the owner
 Expect: none
 
 diff --git a/README.md b/README.md
-index e6b1614..22930ed 100644
+index d998d0f..a1a7abe 100644
 --- a/README.md
 +++ b/README.md
 @@ -5,7 +5,7 @@

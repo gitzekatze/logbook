@@ -1,0 +1,11 @@
+# Files the test user's programs must never open (file watcher). Shell
+# patterns; * also matches /. Crash files have their own watcher.
+/home/*/.ssh/id_*
+/home/*/.gnupg/*
+/home/*/.local/share/keyrings/*
+/home/*/.mozilla/*
+/home/*/.config/google-chrome/*
+/home/*/.config/chromium/*
+/etc/shadow
+/etc/gshadow
+/root/*

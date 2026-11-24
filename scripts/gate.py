@@ -11,7 +11,8 @@ pull_request_target on GitHub), so a change can't switch off its own gate.
 
 The owner is needed when the change
   1. touches a protected file (PROTECTED below: the checks, the claims and
-     breaks, the expected results, the limits, the security crates, CI);
+     breaks, the expected results, the limits, the security crates, CI, the
+     test computers with their watchers and probes);
   2. adds or changes an outside crate in Cargo.lock (new crate, other
      version, other checksum, other source);
   3. adds a line that can switch a test or a lint off: #[ignore],
@@ -60,6 +61,7 @@ PROTECTED = [
     "clippy.toml",
     "rust-toolchain*",
     "dist/*.service",
+    "vm/*",
     "crates/logbook-guard/*",
     "crates/logbook-exec/*",
     "crates/logbook-redact/*",
