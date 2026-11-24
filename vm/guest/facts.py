@@ -47,7 +47,11 @@ def file_info(path):
             "owner": pwd.getpwuid(s.st_uid).pw_name, "group": grp.getgrgid(s.st_gid).gr_name}
     if shutil.which("getfacl"):
         info["acl"] = run(f"getfacl -p {path} 2>/dev/null | grep -v '^#'")["out"].split()
-    info["tester_can_read"] = run(f"test -r {path}", user=True)["exit"] == 0
+    info["tester_can_read"] = run(f"cat {path} >/dev/null 2>&1 || test -x {path}", user=True)["exit"] == 0
+    parent = p.parent
+    ps = parent.stat()
+    info["folder"] = {"path": str(parent), "mode": oct(stat.S_IMODE(ps.st_mode)),
+                      "owner": pwd.getpwuid(ps.st_uid).pw_name, "group": grp.getgrgid(ps.st_gid).gr_name}
     return info
 
 
@@ -89,7 +93,24 @@ def journal():
         "tester_groups": run(f"id {USER}")["out"].strip(),
         "tester_reads_system_journal": reads,
         "journal_groups": run("getent group systemd-journal adm wheel")["out"].strip(),
+        "reads_system_journal_by_group": journal_by_group(),
     }
+
+
+def journal_by_group():
+    """For each candidate group: a fresh user in only that group, and whether
+    it sees system messages. Tests what really grants access, ACLs included."""
+    out = {}
+    for i, g in enumerate(("systemd-journal", "adm", "wheel", "sudo")):
+        if run(f"getent group {g}")["exit"] != 0:
+            out[g] = "group doesn't exist"
+            continue
+        name = f"jprobe{i}"
+        run(f"useradd -M -G {g} {name}")
+        r = run(f"runuser -u {name} -- journalctl --system -b -q --no-pager 2>/dev/null | wc -l")
+        out[g] = int(r["out"].strip() or 0) > 0
+        run(f"userdel {name}")
+    return out
 
 
 def crashes():
@@ -184,7 +205,10 @@ after = found()
 c.close()
 print(json.dumps({"sqlite": sqlite3.sqlite_version, "after_delete": before, "after_checkpoint": after}))
 '''
-    r = run(f"python3 -c {json.dumps(code)}", user=True)
+    script = pathlib.Path("/tmp/secure_delete_test.py")
+    script.write_text(code)
+    script.chmod(0o644)
+    r = run(f"python3 {script}", user=True)
     try:
         return json.loads(r["out"])
     except ValueError:
