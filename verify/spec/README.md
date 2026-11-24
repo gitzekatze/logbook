@@ -29,3 +29,4 @@ example that a generator covers every lane.
 | Step | Folder | Claims |
 |---|---|---|
 | 0.1a, 1: event model and stable IDs | `step1/` | C01.2, C01.3, C12.4, G7 |
+| 0.1a, 2: the store | `step2/` | D01.3, D01.4, D02.1, D03.1–D03.3, D04.1–D04.3, D05.1, D05.2, L10.1, L10.2 |

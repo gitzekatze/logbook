@@ -1723,7 +1723,7 @@ text = "An undo link survives re-deriving. CONF"
 
 [[claim]]
 id = "D01.1"
-step = 2
+step = 7
 function = "F-D01"
 due = "0.1a"
 security = false
@@ -1732,7 +1732,7 @@ text = "Migration from every earlier schema version works. CONF (one stored data
 
 [[claim]]
 id = "D01.2"
-step = 2
+step = 7
 function = "F-D01"
 due = "0.1a"
 security = false
