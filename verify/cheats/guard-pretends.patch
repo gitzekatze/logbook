@@ -2,7 +2,7 @@ Cheat: the network guard pretends to succeed
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 5b9d936..623c20a 100644
+index 335d5ca..0a69fb4 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
 @@ -23,9 +23,7 @@ impl std::error::Error for GuardError {}

@@ -101,3 +101,19 @@ pub(crate) fn is_simple_name(s: &str) -> bool {
 fn hex_digit(n: u8) -> char {
     char::from(if n < 10 { b'0' + n } else { b'a' + n - 10 })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ids_and_errors_print_as_text() {
+        let id = EventId::derive("pacman", b"pacman.log:1", 0).unwrap();
+        assert_eq!(id.to_string(), id.as_str());
+        let e = EventId::derive("Pac Man", b"", 0).unwrap_err();
+        assert_eq!(
+            e.to_string(),
+            "reader name \"Pac Man\" isn't of the form [a-z0-9_]+"
+        );
+    }
+}

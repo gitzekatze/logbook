@@ -37,4 +37,14 @@ mod tests {
     fn deny_network_fails_closed_until_implemented() {
         assert!(deny_network().is_err());
     }
+
+    /// The reason reaches the user: each program prints it when it refuses.
+    #[test]
+    fn the_refusal_says_why() {
+        let e = deny_network().unwrap_err();
+        assert_eq!(
+            e.to_string(),
+            "the network block is not implemented yet, so Logbook refuses to run"
+        );
+    }
 }

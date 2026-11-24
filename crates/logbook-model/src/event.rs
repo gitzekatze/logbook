@@ -308,3 +308,23 @@ fn is_sentence(s: &str) -> bool {
         _ => false,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::testing::any_event;
+    use proptest::strategy::{Strategy, ValueTree};
+    use proptest::test_runner::TestRunner;
+
+    /// "Not before time" includes the same moment: an end or last time equal
+    /// to the start is valid.
+    #[test]
+    fn end_and_last_time_may_equal_the_start() {
+        let mut runner = TestRunner::deterministic();
+        let mut e = any_event().new_tree(&mut runner).unwrap().current();
+        e.count = 2;
+        e.last_time = Some(e.time.clone());
+        e.end = Some(e.time.clone());
+        e.raw_omitted = 0;
+        assert_eq!(e.check(), Ok(()));
+    }
+}
