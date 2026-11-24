@@ -62,6 +62,7 @@ PROTECTED = [
     "rust-toolchain*",
     "dist/*.service",
     "vm/*",
+    "schema/*",
     "crates/logbook-guard/*",
     "crates/logbook-exec/*",
     "crates/logbook-redact/*",

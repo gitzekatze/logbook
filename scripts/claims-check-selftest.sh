@@ -148,4 +148,27 @@ expect_fail "no test results at all"
 fresh; sed -i 's/current = "0.1a"/current = "0.1b"/' "$REG"
 expect_fail "moving to the next milestone makes its claims due (A02.1 unproven)"
 
+# Steps: once one claim of a step has a test, every claim of that step is due.
+step_fresh() {
+    fresh
+    sed -i 's/current = "0.1a"/current = "phase0"/' "$REG"
+    sed -i '/^id = "A01.1"/a step = 1' "$REG"
+    sed -i '/^id = "A01.2"/a step = 1' "$REG"
+    sed -i '/^id = "G1"/a step = 2' "$REG"
+}
+step_fresh
+if check; then echo "passes:     a started step with all its claims proven"; else echo "FAILS:      a started step with all its claims proven"; failed=1; fi
+
+step_fresh; sed -i '/a01_2_/d' "$RES"
+expect_fail "a started step leaves one of its claims without a test"
+
+step_fresh; rm "$SCRATCH/verify/breaks/A01.2-two-collectors.patch"
+expect_fail "a started step has a security claim without its break"
+
+step_fresh; sed -i '/a01_/d' "$RES"
+if check; then echo "passes:     a step not started yet is not due before its milestone"; else echo "FAILS:      a step not started yet is not due before its milestone"; failed=1; fi
+
+step_fresh; sed -i '0,/step = 1/s//step = "one"/' "$REG"
+expect_fail "a step that isn't a whole number"
+
 exit $failed
