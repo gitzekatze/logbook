@@ -1,6 +1,8 @@
-# Test computers (build plan V08, step P6): throwaway virtual machines on
-# GitHub's runners, never on the owner's computer. The watchers prove
-# themselves with their probes, then a day is acted out, recorded and checked.
+# Test computers (build plan V08, step P6) and fresh days (V04, step P7):
+# throwaway virtual machines on GitHub's runners, never on the owner's
+# computer. The watchers prove themselves with their probes; then a fresh day,
+# decided by a seed picked at run time, is acted out, recorded and compared.
+# A failed day is replayed by running this workflow by hand with its seed.
 name: Test computers
 
 on:
@@ -16,6 +18,12 @@ on:
       - "scripts/vm.py"
       - ".github/workflows/vm.yml"
   workflow_dispatch:
+    inputs:
+      seed:
+        description: "Seed of the day to replay (empty: a new random day)"
+        required: false
+  schedule:
+    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -45,8 +53,18 @@ jobs:
         run: python3 scripts/vm.py prepare arch
       - name: Watchers prove themselves - every probe caught, the quiet one not
         run: python3 scripts/vm.py selftest arch
-      - name: A test day - acted out, recorded, every step traced in the sources
-        run: python3 scripts/vm.py scenario arch basic-day target/vm/day
+      - name: Pick the day
+        id: day
+        env:
+          SEED_IN: ${{ inputs.seed }}
+        run: |
+          seed=${SEED_IN:-$(python3 -c 'import secrets; print(secrets.randbelow(2**31))')}
+          echo "seed=$seed" >> "$GITHUB_OUTPUT"
+          echo "Fresh day seed: **$seed** (replay: run this workflow by hand with this seed)" >> "$GITHUB_STEP_SUMMARY"
+      - name: A fresh day - acted out, recorded, the reader compared with the harness
+        env:
+          SEED: ${{ steps.day.outputs.seed }}
+        run: python3 scripts/vm.py day arch "$SEED" target/vm/day
       - name: Keep the console and the recorded day
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
