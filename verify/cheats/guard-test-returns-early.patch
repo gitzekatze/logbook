@@ -2,7 +2,7 @@ Cheat: make the guard's test pass without checking anything
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 5b9d936..0a99ac2 100644
+index 335d5ca..96b178a 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
 @@ -35,6 +35,8 @@ mod tests {
@@ -13,4 +13,4 @@ index 5b9d936..0a99ac2 100644
 +        #[allow(unreachable_code)]
          assert!(deny_network().is_err());
      }
- }
+ 

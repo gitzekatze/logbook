@@ -2,10 +2,10 @@ Cheat: delete the network guard's test
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 5b9d936..680fdaf 100644
+index 335d5ca..c3a3b5f 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
-@@ -32,9 +32,4 @@ pub fn deny_network() -> Result<(), GuardError> {
+@@ -32,11 +32,6 @@ pub fn deny_network() -> Result<(), GuardError> {
  mod tests {
      use super::*;
  
@@ -14,4 +14,6 @@ index 5b9d936..680fdaf 100644
 -    fn deny_network_fails_closed_until_implemented() {
 -        assert!(deny_network().is_err());
 -    }
- }
+ 
+     /// The reason reaches the user: each program prints it when it refuses.
+     #[test]

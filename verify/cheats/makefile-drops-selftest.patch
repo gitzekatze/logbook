@@ -2,7 +2,7 @@ Cheat: remove the self-tests from make check
 Expect: owner
 
 diff --git a/Makefile b/Makefile
-index 2a1c2c7..0eafd8e 100644
+index c91186a..f746463 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -54,7 +54,7 @@ gate:

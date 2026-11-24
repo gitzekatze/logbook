@@ -14,3 +14,19 @@ fn main() -> ExitCode {
     eprintln!("logbook-collector: not built yet (Phase 0)");
     ExitCode::FAILURE
 }
+
+#[cfg(test)]
+mod tests {
+    use std::process::ExitCode;
+
+    /// Without its network block the program refuses to run (fail-closed):
+    /// main ends with the failure code. ExitCode can't be compared directly,
+    /// so its debug form is.
+    #[test]
+    fn refuses_to_run_without_the_network_block() {
+        assert_eq!(
+            format!("{:?}", super::main()),
+            format!("{:?}", ExitCode::FAILURE)
+        );
+    }
+}

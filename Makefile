@@ -61,6 +61,7 @@ selftest:
 	sh scripts/claims-check-selftest.sh
 	sh scripts/breaks-check-selftest.sh
 	python3 scripts/freshday.py selftest
+	sh scripts/mutants-check-selftest.sh
 
 clean:
 	$(CARGO) clean

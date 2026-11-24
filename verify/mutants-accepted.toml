@@ -1,0 +1,8 @@
+# Surviving mutants that are accepted, each with its reason (build plan V10).
+# A survivor not listed here fails the mutation check, even above the
+# threshold. A protected file: every entry needs the owner's approval.
+#
+# [[accepted]]
+# file = "crates/logbook-model/src/time.rs"      # where
+# mutant = "replace < with <= in is_canonical_time"  # cargo-mutants' text, without line:column
+# reason = "why no test can tell the difference (an equivalent mutant)"

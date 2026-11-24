@@ -2,7 +2,7 @@ Cheat: rename the guard's test so it no longer matches what it proved
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 5b9d936..2b3eb1c 100644
+index 335d5ca..7c64c39 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
 @@ -34,7 +34,7 @@ mod tests {
@@ -13,4 +13,4 @@ index 5b9d936..2b3eb1c 100644
 +    fn deny_network_works() {
          assert!(deny_network().is_err());
      }
- }
+ 
