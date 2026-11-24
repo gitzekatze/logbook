@@ -2,10 +2,10 @@ Cheat: change the gate so it finds nothing
 Expect: owner
 
 diff --git a/scripts/gate.py b/scripts/gate.py
-index 72162a1..eb0e9d6 100644
+index 580b8e1..e1f0c2d 100644
 --- a/scripts/gate.py
 +++ b/scripts/gate.py
-@@ -154,7 +154,7 @@ def reasons_for(repo, base, head, base_tests=None, head_tests=None):
+@@ -155,7 +155,7 @@ def reasons_for(repo, base, head, base_tests=None, head_tests=None):
          lost = passed_tests(base_tests) - passed_tests(head_tests)
          for name in sorted(lost.elements()):
              reasons.append(f"test passed before but doesn't run and pass now: {name}")

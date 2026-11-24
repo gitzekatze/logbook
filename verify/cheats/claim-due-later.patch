@@ -1,13 +1,15 @@
-Cheat: move a security claim to a later milestone so it isn't due
+Cheat: move a security claim out of its step and to a later milestone so it isn't due
 Expect: owner
 
 diff --git a/verify/claims.toml b/verify/claims.toml
-index f230898..0048c68 100644
+index 6d5d949..fbcee3d 100644
 --- a/verify/claims.toml
 +++ b/verify/claims.toml
-@@ -2409,7 +2409,7 @@ text = "No network crates and no network features in the dependency tree. STATIC
+@@ -2531,9 +2531,8 @@ text = "No network crates and no network features in the dependency tree. STATIC
+ 
  [[claim]]
  id = "L02.2"
+-step = 3
  function = "F-L02"
 -due = "0.1a"
 +due = "1.0"

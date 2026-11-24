@@ -10,6 +10,9 @@
 # in lower case, dot as underscore (A02.1 -> a02_1_…, G4 -> g4_…), proves it.
 # security = true marks a 🛡 claim: it also needs its own break in
 # verify/breaks/<ID>-<name>.patch (build plan V11).
+# step = N: the step of the version that proves the claim (build plan,
+# section 5); each step has its own spec PR. Once one claim of a step has a
+# test, all claims of that step are due (scripts/claims-check.py).
 
 [registry]
 milestones = ["0.1a", "0.1b", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "1.0"]
@@ -432,6 +435,7 @@ version = "0.1"
 
 [[claim]]
 id = "G1"
+step = 5
 function = "global"
 due = "0.1a"
 security = false
@@ -440,6 +444,7 @@ text = "Determinism: the same input twice gives byte-identical events."
 
 [[claim]]
 id = "G2"
+step = 8
 function = "global"
 due = "0.1a"
 security = false
@@ -448,6 +453,7 @@ text = "Split and resume: the input cut at random points with a restart in betwe
 
 [[claim]]
 id = "G3"
+step = 7
 function = "global"
 due = "0.1a"
 security = false
@@ -464,6 +470,7 @@ text = "No canary appears in any filtered output: report, AI interface, --redact
 
 [[claim]]
 id = "G5"
+step = 4
 function = "global"
 due = "0.1a"
 security = true
@@ -480,6 +487,7 @@ text = "Hostile text appears only in fields marked as untrusted."
 
 [[claim]]
 id = "G7"
+step = 1
 function = "global"
 due = "0.1a"
 security = false
@@ -488,6 +496,7 @@ text = "All --json and AI-interface output is valid against the versioned schema
 
 [[claim]]
 id = "G8"
+step = 7
 function = "global"
 due = "0.1a"
 security = false
@@ -496,6 +505,7 @@ text = "Every event has a lane, a severity, a template and a text; every problem
 
 [[claim]]
 id = "G9"
+step = 9
 function = "global"
 due = "0.1a"
 security = true
@@ -504,6 +514,7 @@ text = "Read-only commands change nothing: the store files are byte-identical be
 
 [[claim]]
 id = "B00.1"
+step = 5
 function = "F-B"
 due = "0.1a"
 security = false
@@ -512,6 +523,7 @@ text = "Every reader: recorded real input gives the expected records."
 
 [[claim]]
 id = "B00.2"
+step = 5
 function = "F-B"
 due = "0.1a"
 security = false
@@ -520,6 +532,7 @@ text = "Every reader: unknown lines are counted and never stop the reader."
 
 [[claim]]
 id = "B00.3"
+step = 5
 function = "F-B"
 due = "0.1a"
 security = true
@@ -528,6 +541,7 @@ text = "No reader writes anything, and none starts a program outside logbook-exe
 
 [[claim]]
 id = "B00.4"
+step = 5
 function = "F-B"
 due = "0.1a"
 security = false
@@ -536,6 +550,7 @@ text = "Every text reader is fuzzed and has a format contract checked by doctor.
 
 [[claim]]
 id = "I00.1"
+step = 9
 function = "F-I"
 due = "0.1a"
 security = false
@@ -544,6 +559,7 @@ text = "Every command: normal output, --json and exit code match the approved sa
 
 [[claim]]
 id = "I00.2"
+step = 9
 function = "F-I"
 due = "0.1a"
 security = false
@@ -552,6 +568,7 @@ text = "The --json contract holds (schema snapshot)."
 
 [[claim]]
 id = "I00.3"
+step = 9
 function = "F-I"
 due = "0.1a"
 security = false
@@ -560,6 +577,7 @@ text = "Exit codes are 0 OK, 1 error, 2 nothing found, 3 partial coverage."
 
 [[claim]]
 id = "I00.4"
+step = 9
 function = "F-I"
 due = "0.1a"
 security = true
@@ -576,6 +594,7 @@ text = "--redact lets no canary through."
 
 [[claim]]
 id = "I00.6"
+step = 9
 function = "F-I"
 due = "0.1a"
 security = false
@@ -584,6 +603,7 @@ text = "Read-only commands change nothing."
 
 [[claim]]
 id = "A01.1"
+step = 8
 function = "F-A01"
 due = "0.1a"
 security = false
@@ -592,6 +612,7 @@ text = "Starts after login and ends at logout. RUN (real systemd user session in
 
 [[claim]]
 id = "A01.2"
+step = 8
 function = "F-A01"
 due = "0.1a"
 security = false
@@ -601,6 +622,7 @@ break = "remove the single-instance lock, so two collectors run (A01.2 fails)."
 
 [[claim]]
 id = "A01.3"
+step = 8
 function = "F-A01"
 due = "0.1a"
 security = false
@@ -609,6 +631,7 @@ text = "Switched off, it stays off after the next login. RUN"
 
 [[claim]]
 id = "A02.1"
+step = 8
 function = "F-A02"
 due = "0.1a"
 security = false
@@ -618,6 +641,7 @@ break = "save the bookmark outside the event transaction (A02.1 fails with dupli
 
 [[claim]]
 id = "A02.2"
+step = 8
 function = "F-A02"
 due = "0.1a"
 security = false
@@ -626,6 +650,7 @@ text = "Rotated files, including `.gz`, are read without gaps. CONF (real rotate
 
 [[claim]]
 id = "A02.3"
+step = 8
 function = "F-A02"
 due = "0.1a"
 security = false
@@ -634,6 +659,7 @@ text = "A bookmark to deleted journal data gives a gap event. CONF (journal reco
 
 [[claim]]
 id = "A02.4"
+step = 8
 function = "F-A02"
 due = "0.1a"
 security = false
@@ -642,6 +668,7 @@ text = "A file that got shorter is treated as new. CONF"
 
 [[claim]]
 id = "A03.1"
+step = 8
 function = "F-A03"
 due = "0.1a"
 security = false
@@ -650,6 +677,7 @@ text = "Recorded history gives the expected events. CONF"
 
 [[claim]]
 id = "A03.2"
+step = 8
 function = "F-A03"
 due = "0.1a"
 security = false
@@ -658,6 +686,7 @@ text = "The progress reaches 100 %. UNIT"
 
 [[claim]]
 id = "A03.3"
+step = 8
 function = "F-A03"
 due = "0.1a"
 security = false
@@ -667,6 +696,7 @@ break = "the import ignores the bookmark after an interruption (A03.3 fails)."
 
 [[claim]]
 id = "A03.4"
+step = 8
 function = "F-A03"
 due = "0.1a"
 security = false
@@ -683,6 +713,7 @@ text = "The right readers are active on Arch, Debian, Ubuntu, Fedora, openSUSE a
 
 [[claim]]
 id = "A04.2"
+step = 8
 function = "F-A04"
 due = "0.1a"
 security = false
@@ -700,6 +731,7 @@ break = "detect by distribution name only (A04.3 fails)."
 
 [[claim]]
 id = "A05.1"
+step = 8
 function = "F-A05"
 due = "0.1a"
 security = false
@@ -717,6 +749,7 @@ text = "The banner appears exactly when coverage is partial. UNIT (view model) +
 
 [[claim]]
 id = "A05.3"
+step = 8
 function = "F-A05"
 due = "0.1a"
 security = false
@@ -725,6 +758,7 @@ text = "A change of rights is recorded. RUN"
 
 [[claim]]
 id = "A06.1"
+step = 8
 function = "F-A06"
 due = "0.1a"
 security = false
@@ -734,6 +768,7 @@ break = "remove the rate limit (A06.1 and A06.3 fail)."
 
 [[claim]]
 id = "A06.2"
+step = 8
 function = "F-A06"
 due = "0.1a"
 security = false
@@ -742,6 +777,7 @@ text = "The import pauses on battery. UNIT (simulated power state) + DOC (UPower
 
 [[claim]]
 id = "A06.3"
+step = 8
 function = "F-A06"
 due = "0.1a"
 security = false
@@ -751,6 +787,7 @@ break = "remove the rate limit (A06.1 and A06.3 fail)."
 
 [[claim]]
 id = "A07.1"
+step = 8
 function = "F-A07"
 due = "0.1a"
 security = false
@@ -760,6 +797,7 @@ break = "let a reader error end the collector (A07.1 fails)."
 
 [[claim]]
 id = "A07.2"
+step = 8
 function = "F-A07"
 due = "0.1a"
 security = false
@@ -776,6 +814,7 @@ text = "After 5 restarts the window shows the problem. RUN"
 
 [[claim]]
 id = "A08.1"
+step = 8
 function = "F-A08"
 due = "0.1a"
 security = false
@@ -785,6 +824,7 @@ break = "read local time as UTC (A08.1 fails)."
 
 [[claim]]
 id = "A08.2"
+step = 8
 function = "F-A08"
 due = "0.1a"
 security = false
@@ -793,6 +833,7 @@ text = "Events before a clock correction are marked \"time uncertain\". CONF"
 
 [[claim]]
 id = "A08.3"
+step = 8
 function = "F-A08"
 due = "0.1a"
 security = false
@@ -801,6 +842,7 @@ text = "The pacman time-zone offset is read correctly. CONF"
 
 [[claim]]
 id = "B01.1"
+step = 5
 function = "F-B01"
 due = "0.1a"
 security = false
@@ -810,6 +852,7 @@ break = "treat a transaction without an end line as completed (B01.1 fails: \"in
 
 [[claim]]
 id = "B01.2"
+step = 5
 function = "F-B01"
 due = "0.1a"
 security = false
@@ -818,6 +861,7 @@ text = "The tool is named only when certain (\"a package manager\" for Shelly). 
 
 [[claim]]
 id = "B01.3"
+step = 5
 function = "F-B01"
 due = "0.1a"
 security = false
@@ -826,6 +870,7 @@ text = "The final versions match `pacman -Q`. ORACLE (DISTRO Arch)"
 
 [[claim]]
 id = "B01.4"
+step = 5
 function = "F-B01"
 due = "0.1a"
 security = false
@@ -984,6 +1029,7 @@ text = "Matches `snap changes`. ORACLE (DISTRO Ubuntu)"
 
 [[claim]]
 id = "B07.1"
+step = 6
 function = "F-B07"
 due = "0.1a"
 security = false
@@ -992,6 +1038,7 @@ text = "A normal day, a failed service, a kernel error and sleep/wake give the e
 
 [[claim]]
 id = "B07.2"
+step = 6
 function = "F-B07"
 due = "0.1a"
 security = false
@@ -1001,6 +1048,7 @@ break = "hand on all priorities (B07.2 fails and the store grows)."
 
 [[claim]]
 id = "B07.3"
+step = 6
 function = "F-B07"
 due = "0.1a"
 security = false
@@ -1009,6 +1057,7 @@ text = "A journal kept only in memory is reported in the coverage. DISTRO"
 
 [[claim]]
 id = "B07.4"
+step = 6
 function = "F-B07"
 due = "0.1a"
 security = false
@@ -1017,6 +1066,7 @@ text = "Damaged journal files become a gap. FAULT"
 
 [[claim]]
 id = "B07.5"
+step = 6
 function = "F-B07"
 due = "0.1a"
 security = false
@@ -1025,6 +1075,7 @@ text = "Live reading follows changes without polling. RUN"
 
 [[claim]]
 id = "B08.1"
+step = 6
 function = "F-B08"
 due = "0.1a"
 security = false
@@ -1033,6 +1084,7 @@ text = "Normal, abrupt and sleep sequences are recognised. CONF"
 
 [[claim]]
 id = "B08.2"
+step = 6
 function = "F-B08"
 due = "0.1a"
 security = false
@@ -1042,6 +1094,7 @@ break = "count waking as a boot (B08.2 fails)."
 
 [[claim]]
 id = "B08.3"
+step = 6
 function = "F-B08"
 due = "0.1a"
 security = false
@@ -1083,6 +1136,7 @@ text = "Without systemd-coredump: \"not available\", with the reason. DISTRO"
 
 [[claim]]
 id = "B10.1"
+step = 6
 function = "F-B10"
 due = "0.1a"
 security = false
@@ -1091,6 +1145,7 @@ text = "Update, switch and return to the old kernel give the right records. CONF
 
 [[claim]]
 id = "B10.2"
+step = 6
 function = "F-B10"
 due = "0.1a"
 security = false
@@ -1350,6 +1405,7 @@ text = "The card shows the hint and **no restore button**; no code path can star
 
 [[claim]]
 id = "C01.1"
+step = 5
 function = "F-C01"
 due = "0.1a"
 security = false
@@ -1358,6 +1414,7 @@ text = "The output of every reader maps onto the model. CONF (G7)"
 
 [[claim]]
 id = "C01.2"
+step = 1
 function = "F-C01"
 due = "0.1a"
 security = false
@@ -1366,7 +1423,18 @@ text = "A field change without a version change fails. STATIC (schema snapshot)"
 break = "add a field without changing the version (C01.2 fails)."
 
 [[claim]]
+id = "C01.3"
+step = 1
+function = "F-C01"
+due = "0.1a"
+security = false
+proofs = ["UNIT", "PROP"]
+text = "Reading an event back gives the same event, and the model refuses exactly what the schema and its stated extra rules refuse. UNIT + PROP (two-sided, on changed events)"
+break = "accept 21 raw lines or a count of 0 when reading (C01.3 fails)."
+
+[[claim]]
 id = "C02.1"
+step = 7
 function = "F-C02"
 due = "0.1a"
 security = false
@@ -1376,6 +1444,7 @@ break = "remove an anchor from a pattern (C02.1 fails: a negative example matche
 
 [[claim]]
 id = "C02.2"
+step = 7
 function = "F-C02"
 due = "0.1a"
 security = false
@@ -1384,6 +1453,7 @@ text = "No unintended double matches. UNIT (overlap test)"
 
 [[claim]]
 id = "C02.3"
+step = 7
 function = "F-C02"
 due = "0.1a"
 security = true
@@ -1392,6 +1462,7 @@ text = "Only a regular-expression engine with guaranteed linear time; backtracki
 
 [[claim]]
 id = "C03.1"
+step = 7
 function = "F-C03"
 due = "0.1a"
 security = false
@@ -1400,6 +1471,7 @@ text = "Repeat sequences give the expected counts and windows. CONF"
 
 [[claim]]
 id = "C03.2"
+step = 7
 function = "F-C03"
 due = "0.1a"
 security = false
@@ -1408,6 +1480,7 @@ text = "Nothing is lost: the sum of all counts equals the number of matching raw
 
 [[claim]]
 id = "C03.3"
+step = 7
 function = "F-C03"
 due = "0.1a"
 security = false
@@ -1417,6 +1490,7 @@ break = "fold by kind only (C03.3 fails)."
 
 [[claim]]
 id = "C04.1"
+step = 7
 function = "F-C04"
 due = "0.1a"
 security = false
@@ -1426,6 +1500,7 @@ break = "sort alphabetically (C04.1 fails)."
 
 [[claim]]
 id = "C04.2"
+step = 7
 function = "F-C04"
 due = "0.1a"
 security = false
@@ -1434,6 +1509,7 @@ text = "The list of important packages for each distribution is a tested data fi
 
 [[claim]]
 id = "C04.3"
+step = 7
 function = "F-C04"
 due = "0.1a"
 security = false
@@ -1442,6 +1518,7 @@ text = "Flatpak runtimes and apps are two events. CONF"
 
 [[claim]]
 id = "C05.1"
+step = 7
 function = "F-C05"
 due = "0.1a"
 security = false
@@ -1451,6 +1528,7 @@ break = "give unknown kinds \"info\" (C05.1 fails)."
 
 [[claim]]
 id = "C05.2"
+step = 7
 function = "F-C05"
 due = "0.1a"
 security = false
@@ -1517,6 +1595,7 @@ text = "After a lasting jump the baseline is reset. CONF"
 
 [[claim]]
 id = "C08.1"
+step = 7
 function = "F-C08"
 due = "0.1a"
 security = false
@@ -1534,6 +1613,7 @@ text = "Each source type is resolved: package, Flatpak, Snap, AppImage, sandbox,
 
 [[claim]]
 id = "C09.2"
+step = 7
 function = "F-C09"
 due = "0.1a"
 security = false
@@ -1551,6 +1631,7 @@ break = "drop the sandbox rule (C09.3 fails)."
 
 [[claim]]
 id = "C09.4"
+step = 7
 function = "F-C09"
 due = "0.1a"
 security = false
@@ -1559,6 +1640,7 @@ text = "The package owner matches `pacman -Qo` / `dpkg -S` / `rpm -qf`. ORACLE"
 
 [[claim]]
 id = "C10.1"
+step = 7
 function = "F-C10"
 due = "0.1a"
 security = false
@@ -1567,6 +1649,7 @@ text = "Every event kind has a template in English and German. STATIC (translati
 
 [[claim]]
 id = "C10.2"
+step = 7
 function = "F-C10"
 due = "0.1a"
 security = false
@@ -1576,6 +1659,7 @@ break = "delete a fallback (C10.2 fails)."
 
 [[claim]]
 id = "C10.3"
+step = 7
 function = "F-C10"
 due = "0.1a"
 security = false
@@ -1584,6 +1668,7 @@ text = "No technical term from the word list in normal text without an explanati
 
 [[claim]]
 id = "C11.1"
+step = 7
 function = "F-C11"
 due = "0.1a"
 security = false
@@ -1592,6 +1677,7 @@ text = "An event updated during a run appears updated in the window and in `--js
 
 [[claim]]
 id = "C11.2"
+step = 7
 function = "F-C11"
 due = "0.1a"
 security = false
@@ -1601,12 +1687,23 @@ break = "give an updated event a new ID (C11.2 fails)."
 
 [[claim]]
 id = "C12.1"
+step = 7
 function = "F-C12"
 due = "0.1a"
 security = false
 proofs = ["PROP"]
 text = "Deriving the same raw records twice gives identical events and IDs. PROP (G1, G3)"
 break = "derive the ID from a counter (C12.1 fails)."
+
+[[claim]]
+id = "C12.4"
+step = 1
+function = "F-C12"
+due = "0.1a"
+security = false
+proofs = ["UNIT", "PROP"]
+text = "An event's ID depends only on its reader, the record's position in the source (not its text) and its part number within the record; known answers fix the derivation. UNIT + PROP"
+break = "derive the ID from a counter or from the line's text (C12.4 fails)."
 
 [[claim]]
 id = "C12.2"
@@ -1626,6 +1723,7 @@ text = "An undo link survives re-deriving. CONF"
 
 [[claim]]
 id = "D01.1"
+step = 2
 function = "F-D01"
 due = "0.1a"
 security = false
@@ -1634,6 +1732,7 @@ text = "Migration from every earlier schema version works. CONF (one stored data
 
 [[claim]]
 id = "D01.2"
+step = 2
 function = "F-D01"
 due = "0.1a"
 security = false
@@ -1643,6 +1742,7 @@ break = "migrate without a backup (D01.2 fails)."
 
 [[claim]]
 id = "D01.3"
+step = 2
 function = "F-D01"
 due = "0.1a"
 security = false
@@ -1651,6 +1751,7 @@ text = "An older Logbook refuses a newer database. UNIT"
 
 [[claim]]
 id = "D01.4"
+step = 2
 function = "F-D01"
 due = "0.1a"
 security = false
@@ -1659,6 +1760,7 @@ text = "A damaged database is detected, moved aside and replaced, with a gap. FA
 
 [[claim]]
 id = "D02.1"
+step = 2
 function = "F-D02"
 due = "0.1a"
 security = false
@@ -1668,6 +1770,7 @@ break = "give the privacy lane 180 days (D02.1 fails)."
 
 [[claim]]
 id = "D03.1"
+step = 2
 function = "F-D03"
 due = "0.1a"
 security = false
@@ -1676,6 +1779,7 @@ text = "The raw lines can still be viewed after the journal has rotated. CONF"
 
 [[claim]]
 id = "D03.2"
+step = 2
 function = "F-D03"
 due = "0.1a"
 security = false
@@ -1685,6 +1789,7 @@ break = "keep 21 lines (D03.2 fails)."
 
 [[claim]]
 id = "D03.3"
+step = 2
 function = "F-D03"
 due = "0.1a"
 security = false
@@ -1693,6 +1798,7 @@ text = "Stored unchanged; the filter applies only on output. UNIT"
 
 [[claim]]
 id = "D04.1"
+step = 2
 function = "F-D04"
 due = "0.1a"
 security = false
@@ -1701,6 +1807,7 @@ text = "A running collector and several readers: no locking errors. RUN (stress 
 
 [[claim]]
 id = "D04.2"
+step = 2
 function = "F-D04"
 due = "0.1a"
 security = true
@@ -1710,6 +1817,7 @@ break = "open reading connections without `query_only` (D04.2 fails)."
 
 [[claim]]
 id = "D04.3"
+step = 2
 function = "F-D04"
 due = "0.1a"
 security = true
@@ -1718,6 +1826,7 @@ text = "Only the collector depends on `store-write`. STATIC (architecture check)
 
 [[claim]]
 id = "D05.1"
+step = 2
 function = "F-D05"
 due = "0.1a"
 security = false
@@ -1727,6 +1836,7 @@ break = "prune serious events first (D05.1 fails)."
 
 [[claim]]
 id = "D05.2"
+step = 2
 function = "F-D05"
 due = "0.1a"
 security = false
@@ -1760,6 +1870,7 @@ text = "The import parser is hardened. FUZZ"
 
 [[claim]]
 id = "D07.1"
+step = 9
 function = "F-D07"
 due = "0.1a"
 security = true
@@ -1769,6 +1880,7 @@ break = "delete events but keep their raw records (D07.1 fails)."
 
 [[claim]]
 id = "D07.2"
+step = 9
 function = "F-D07"
 due = "0.1a"
 security = false
@@ -1777,6 +1889,7 @@ text = "A re-import doesn't bring the data back. CONF"
 
 [[claim]]
 id = "D07.3"
+step = 9
 function = "F-D07"
 due = "0.1a"
 security = false
@@ -2126,6 +2239,7 @@ break = "the switch is checked only in the settings page (H03.1 fails)."
 
 [[claim]]
 id = "I01.1"
+step = 9
 function = "F-I01"
 due = "0.1a"
 security = false
@@ -2134,6 +2248,7 @@ text = "matches the day view of the same store"
 
 [[claim]]
 id = "I02.1"
+step = 9
 function = "F-I02"
 due = "0.1a"
 security = false
@@ -2142,6 +2257,7 @@ text = "`--since`, `--lane` and `--problems` filter correctly (PROP)"
 
 [[claim]]
 id = "I03.1"
+step = 9
 function = "F-I03"
 due = "0.1a"
 security = false
@@ -2150,6 +2266,7 @@ text = "an invalid date gives exit code 1 and a clear message"
 
 [[claim]]
 id = "I04.1"
+step = 9
 function = "F-I04"
 due = "0.1a"
 security = false
@@ -2158,6 +2275,7 @@ text = "an unknown ID gives exit code 2"
 
 [[claim]]
 id = "I05.1"
+step = 9
 function = "F-I05"
 due = "0.1a"
 security = false
@@ -2174,6 +2292,7 @@ text = "the same report as G01 to G04; `open` is read-only (G9)"
 
 [[claim]]
 id = "I07.1"
+step = 9
 function = "F-I07"
 due = "0.1a"
 security = false
@@ -2182,6 +2301,7 @@ text = "the most frequent unrecognised messages, in the right order"
 
 [[claim]]
 id = "I08.1"
+step = 9
 function = "F-I08"
 due = "0.1a"
 security = false
@@ -2190,6 +2310,7 @@ text = "shows collector state, readers, coverage, size and \"since\""
 
 [[claim]]
 id = "I09.1"
+step = 9
 function = "F-I09"
 due = "0.1a"
 security = false
@@ -2391,6 +2512,7 @@ text = "It isn't reachable through the AI interface. STATIC (J05.4)"
 
 [[claim]]
 id = "L01.1"
+step = 8
 function = "F-L01"
 due = "0.1a"
 security = false
@@ -2400,6 +2522,7 @@ break = "no event for a gap (L01.1 fails)."
 
 [[claim]]
 id = "L02.1"
+step = 3
 function = "F-L02"
 due = "0.1a"
 security = true
@@ -2408,6 +2531,7 @@ text = "No network crates and no network features in the dependency tree. STATIC
 
 [[claim]]
 id = "L02.2"
+step = 3
 function = "F-L02"
 due = "0.1a"
 security = true
@@ -2417,6 +2541,7 @@ break = "remove the `deny_network()` call from one program (L02.2 fails)."
 
 [[claim]]
 id = "L02.3"
+step = 3
 function = "F-L02"
 due = "0.1a"
 security = true
@@ -2425,6 +2550,7 @@ text = "The unit file contains `RestrictAddressFamilies=AF_UNIX`, and `systemd-a
 
 [[claim]]
 id = "L03.1"
+step = 3
 function = "F-L03"
 due = "0.1a"
 security = true
@@ -2434,6 +2560,7 @@ break = "start a program directly with `std::process::Command` in a reader (L03.
 
 [[claim]]
 id = "L03.2"
+step = 3
 function = "F-L03"
 due = "0.1a"
 security = true
@@ -2450,6 +2577,7 @@ text = "Every text reader and the report parser survive fuzzing; lines of any le
 
 [[claim]]
 id = "L03.4"
+step = 3
 function = "F-L03"
 due = "0.1a"
 security = true
@@ -2458,6 +2586,7 @@ text = "Linear-time patterns. See C02.3"
 
 [[claim]]
 id = "L03.5"
+step = 3
 function = "F-L03"
 due = "0.1a"
 security = false
@@ -2466,6 +2595,7 @@ text = "The unit's hardening is verified. RUN (`systemd-analyze security --user`
 
 [[claim]]
 id = "L04.1"
+step = 10
 function = "F-L04"
 due = "0.1a"
 security = false
@@ -2475,6 +2605,7 @@ break = "a hard-coded label (L04.1 fails)."
 
 [[claim]]
 id = "L05.1"
+step = 8
 function = "F-L05"
 due = "0.1a"
 security = false
@@ -2483,6 +2614,7 @@ text = "Hand edits take effect. CONF"
 
 [[claim]]
 id = "L05.2"
+step = 8
 function = "F-L05"
 due = "0.1a"
 security = false
@@ -2492,6 +2624,7 @@ break = "crash on an unknown key (L05.2 fails)."
 
 [[claim]]
 id = "L06.1"
+step = 9
 function = "F-L06"
 due = "0.1a"
 security = false
@@ -2501,6 +2634,7 @@ break = "leave the configuration folder behind (L06.1 fails)."
 
 [[claim]]
 id = "L06.2"
+step = 9
 function = "F-L06"
 due = "0.1a"
 security = false
@@ -2509,6 +2643,7 @@ text = "Removing the package removes the service. DISTRO"
 
 [[claim]]
 id = "L07.1"
+step = 8
 function = "F-L07"
 due = "0.1a"
 security = false
@@ -2518,6 +2653,7 @@ break = "leave out reader errors (L07.1 fails)."
 
 [[claim]]
 id = "L08.1"
+step = 10
 function = "F-L08"
 due = "0.1a"
 security = false
@@ -2527,6 +2663,7 @@ break = "delete the only test of a claim (L08.1 fails)."
 
 [[claim]]
 id = "L09.1"
+step = 9
 function = "F-L09"
 due = "0.1a"
 security = false
@@ -2552,6 +2689,7 @@ text = "The false-alarm rate on the reference corpus and the hidden test set is 
 
 [[claim]]
 id = "L10.1"
+step = 2
 function = "F-L10"
 due = "0.1a"
 security = true
@@ -2561,6 +2699,7 @@ break = "skip the check at start (L10.1 fails)."
 
 [[claim]]
 id = "L10.2"
+step = 2
 function = "F-L10"
 due = "0.1a"
 security = true
@@ -2577,6 +2716,7 @@ text = "Installation from each channel works on a fresh system. DISTRO"
 
 [[claim]]
 id = "L11.2"
+step = 10
 function = "F-L11"
 due = "0.1a"
 security = true
@@ -2586,6 +2726,7 @@ break = "publish an unsigned package (L11.2 fails)."
 
 [[claim]]
 id = "L12.1"
+step = 4
 function = "F-L12"
 due = "0.1a"
 security = true

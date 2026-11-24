@@ -1,2 +1,5 @@
 /target
 /verify/selftest/practice/target
+# Saved failing cases of property tests; written next to the test file,
+# which for spec tests is the protected verify/spec/ folder.
+*.proptest-regressions

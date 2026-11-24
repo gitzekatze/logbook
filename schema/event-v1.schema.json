@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "logbook:event:v1",
+  "title": "Logbook event, version 1",
+  "description": "The public shape of one event (function F-C01), in --json and the AI interface. Changing it needs a new version (schema/event-v2.schema.json). Rules beyond this schema, enforced by the model: a real calendar date and time; end and last_time not before time; last_time only when count > 1; raw_omitted only when count > 1.",
+  "x-logbook-version": 1,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "time",
+    "last_time",
+    "end",
+    "utc_offset",
+    "lane",
+    "kind",
+    "template",
+    "severity",
+    "subject",
+    "summary",
+    "details",
+    "count",
+    "first_time",
+    "links",
+    "raw",
+    "raw_omitted",
+    "raw_lossy",
+    "source",
+    "rules_version",
+    "time_uncertain"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ev-[0-9a-f]{32}$",
+      "description": "Stable ID (F-C12): SHA-256 of the reader, the record's position (not its text) and the event's part number within the record."
+    },
+    "time": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{6}Z$",
+      "description": "When it happened (for folded events: the first time), UTC, exactly 6 decimal places, so text order is time order."
+    },
+    "last_time": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{6}Z$",
+      "description": "For folded events (count > 1): the last time (F-C03); else null. Not before time."
+    },
+    "end": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{6}Z$",
+      "description": "End of a duration (e.g. microphone use); else null. Not before time."
+    },
+    "utc_offset": {
+      "type": "integer",
+      "minimum": -43200,
+      "maximum": 50400,
+      "description": "Seconds east of UTC where it happened (F-A08: local time while travelling)."
+    },
+    "lane": {
+      "enum": [
+        "updates",
+        "system",
+        "crashes",
+        "settings",
+        "privacy",
+        "hardware",
+        "logbook"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z0-9]+(_[a-z0-9]+)*)+$",
+      "description": "E.g. update.transaction, boot.slow, crash.program, wifi80211.failed."
+    },
+    "template": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z0-9]+(_[a-z0-9]+)*)+$",
+      "description": "The text template that wrote the summary (F-C10, G8)."
+    },
+    "severity": {
+      "enum": [
+        "info",
+        "problem",
+        "serious"
+      ]
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name",
+        "version",
+        "source_kind",
+        "package",
+        "path"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "program",
+            "package",
+            "device",
+            "service",
+            "system",
+            "setting"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_kind": {
+          "enum": [
+            "package",
+            "flatpak",
+            "snap",
+            "appimage",
+            "file",
+            "sandbox",
+            "unknown",
+            "none"
+          ],
+          "description": "Where the subject comes from (F-C09); none for subjects that aren't programs, such as a device."
+        },
+        "package": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The package or app ID it belongs to (F-C09)."
+        },
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The program's path, as the source reported it."
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "pattern": "^[^\\s\\p{Cc}](?:[^\\p{Cc}]*[^\\s\\p{Cc}])?$",
+      "description": "One sentence in plain words (F-C10): no line breaks or control characters, no spaces at the ends."
+    },
+    "details": {
+      "type": "object",
+      "description": "Structured details per kind. Each kind gets its own details schema in the step that creates it."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "How often it was folded (F-C03)."
+    },
+    "first_time": {
+      "type": "boolean"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "id",
+          "reason",
+          "strength"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^ev-[0-9a-f]{32}$"
+          },
+          "reason": {
+            "type": "string",
+            "pattern": "^[^\\s\\p{Cc}](?:[^\\p{Cc}]*[^\\s\\p{Cc}])?$",
+            "description": "Why it is linked, in plain words (F-C06)."
+          },
+          "strength": {
+            "enum": [
+              "strong",
+              "weak"
+            ],
+            "description": "Weak links are marked as such (F-C06)."
+          }
+        }
+      }
+    },
+    "raw": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string"
+      },
+      "description": "Up to 20 original lines (F-D03). Bytes that aren't valid UTF-8 are replaced by U+FFFD, and raw_lossy says so."
+    },
+    "raw_omitted": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many original lines were left out (folded events with more than 20)."
+    },
+    "raw_lossy": {
+      "type": "boolean",
+      "description": "True if a raw line had bytes that aren't valid UTF-8."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reader",
+        "mode"
+      ],
+      "properties": {
+        "reader": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "imported"
+          ]
+        }
+      }
+    },
+    "rules_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Version of the rules it was derived with; older ones show as derived with an older version (F-C12)."
+    },
+    "time_uncertain": {
+      "type": "boolean",
+      "description": "Marker from F-A08."
+    }
+  }
+}

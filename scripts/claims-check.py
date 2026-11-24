@@ -19,6 +19,12 @@ It reads verify/claims.toml and the result of an actual test run, and fails if:
     (skipped counts as failed);
   * a due security claim has no break in verify/breaks/<ID>-*.patch.
 
+Steps: a version is built in steps, each with its own spec PR (build plan,
+section 4). A claim may name its step (step = 3). Once any claim of a step has
+a test in the run, the step has started and ALL its claims are due at once,
+even before the milestone: a code PR can't bring in the easy tests of a step
+and leave the hard ones out.
+
 The check reads which tests RAN and PASSED, not which test files exist: a test
 switched off by any trick is simply missing from the run.
 
@@ -40,7 +46,8 @@ CLAIM_ID = re.compile(r"^(?:[A-L]\d\d\.\d+|G\d)$")
 FUNCTION_ID = re.compile(r"^(?:F-[A-L]\d\d|F-[A-L]|global)$")
 TEST_LINE = re.compile(r"^test (\S+) \.\.\. (ok|FAILED|ignored)\b")
 TEST_CLAIM = re.compile(r"^(?:([a-l])(\d\d)_(\d+)|g(\d))_")
-CLAIM_FIELDS = {"id", "function", "due", "security", "proofs", "text", "break"}
+CLAIM_FIELDS = {"id", "function", "due", "security", "proofs", "text", "break", "step"}
+OPTIONAL_FIELDS = {"break", "step"}
 FUNCTION_FIELDS = {"name", "version", "proven_by"}
 
 
@@ -79,7 +86,7 @@ def check_registry(reg):
     for c in claims:
         cid = c.get("id", "?")
         extra = set(c) - CLAIM_FIELDS
-        missing = CLAIM_FIELDS - {"break"} - set(c)
+        missing = CLAIM_FIELDS - OPTIONAL_FIELDS - set(c)
         if extra:
             problems.append(f"claim {cid}: unknown fields {sorted(extra)}")
         if missing:
@@ -103,6 +110,8 @@ def check_registry(reg):
             problems.append(f"claim {cid}: proofs {c['proofs']} (unknown or empty)")
         if not c["text"].strip():
             problems.append(f"claim {cid}: empty text")
+        if "step" in c and (not isinstance(c["step"], int) or isinstance(c["step"], bool) or c["step"] < 1):
+            problems.append(f"claim {cid}: step must be a whole number from 1")
     for fid, f in functions.items():
         if not f.get("proven_by") and not any(c.get("function") == fid for c in claims):
             problems.append(f"function {fid}: has no claim and isn't proven_by another function")
@@ -182,7 +191,9 @@ def main():
             problems.append(f"test {names} names claim {cid}, which doesn't exist")
 
     due_index = milestones.index(current) if current != "phase0" else -1
-    due = [c for c in claims if milestones.index(c["due"]) <= due_index]
+    started = sorted({(c["due"], c["step"]) for c in claims if "step" in c and c["id"] in results})
+    due = [c for c in claims if milestones.index(c["due"]) <= due_index
+           or ("step" in c and (c["due"], c["step"]) in started)]
     proven = 0
     for c in due:
         tests = results.get(c["id"], [])
@@ -198,8 +209,9 @@ def main():
 
     if problems:
         return report(problems, f"Map check failed (milestone {current})")
-    print(f"Map check passed (milestone {current}): {proven} of {len(due)} due claims proven; "
-          f"{len(claims)} claims registered.")
+    steps = ", ".join(f"{m} step {s}" for m, s in started) or "none"
+    print(f"Map check passed (milestone {current}; steps started: {steps}): {proven} of {len(due)} "
+          f"due claims proven; {len(claims)} claims registered.")
     return 0
 
 
