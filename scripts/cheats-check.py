@@ -79,15 +79,18 @@ def gate(base_gate, ws, base, head, base_tests, head_tests, approved=None):
     return run(cmd, ws)
 
 
-def checks(ws, head_tests, env):
-    """Names of the checks that fail on the head."""
+def checks(ws, head_tests, env, details=None):
+    """Names of the checks that fail on the head; their output goes into
+    `details` (for explaining an unexpected verdict)."""
     failed = []
-    if run([sys.executable, "scripts/arch-check.py", str(ws)], ws, env)[0]:
-        failed.append("arch")
-    if run([sys.executable, "scripts/claims-check.py", "--results", str(head_tests)], ws, env)[0]:
-        failed.append("claims")
-    if run([sys.executable, "scripts/breaks-check.py"], ws, env)[0]:
-        failed.append("breaks")
+    for name, cmd in (("arch", [sys.executable, "scripts/arch-check.py", str(ws)]),
+                      ("claims", [sys.executable, "scripts/claims-check.py", "--results", str(head_tests)]),
+                      ("breaks", [sys.executable, "scripts/breaks-check.py"])):
+        code, out = run(cmd, ws, env)
+        if code:
+            failed.append(name)
+            if details is not None:
+                details.append(f"--- {name}:\n{out.strip()[-3000:]}")
     return failed
 
 
@@ -139,7 +142,8 @@ def main():
             code_changed = any(p.endswith((".rs", ".toml", ".lock")) for p in touched)
             head_tests = tests(ws, env, tmp / "head-tests.txt") if code_changed else base_tests
             g, gout = gate(base_gate, ws, base, head, base_tests, head_tests)
-            failed = checks(ws, head_tests, env)
+            details = []
+            failed = checks(ws, head_tests, env, details)
             if expect == "owner":
                 ok = g == 1
                 verdict = "flagged" if ok else "NOT CAUGHT"
@@ -153,6 +157,15 @@ def main():
                 verdict = "quiet" if ok else "FALSE ALARM"
                 why = "gate quiet, checks pass" if ok else f"gate exit {g}, failing: {', '.join(failed) or 'none'}"
             print(f"VERDICT {c.stem} {verdict} -- {why}")
+            if not ok:
+                # Explain it: what the gate found, what failed, which tests didn't pass.
+                print(f"--- gate (exit {g}):\n{gout.strip()[-3000:]}")
+                for d in details:
+                    print(d)
+                print("--- tests not passing on the head:")
+                for line in head_tests.read_text().splitlines():
+                    if line.startswith("test ") and not line.rstrip().endswith(" ok"):
+                        print("   ", line)
             bad += not ok
 
         bad += scenarios(ws, base, base_gate, base_tests, tmp, env)
