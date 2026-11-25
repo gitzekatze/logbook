@@ -2541,7 +2541,7 @@ break = "remove the `deny_network()` call from one program (L02.2 fails)."
 
 [[claim]]
 id = "L02.3"
-step = 3
+step = 8
 function = "F-L02"
 due = "0.1a"
 security = true
@@ -2577,7 +2577,7 @@ text = "Every text reader and the report parser survive fuzzing; lines of any le
 
 [[claim]]
 id = "L03.4"
-step = 3
+step = 7
 function = "F-L03"
 due = "0.1a"
 security = true
@@ -2586,12 +2586,39 @@ text = "Linear-time patterns. See C02.3"
 
 [[claim]]
 id = "L03.5"
-step = 3
+step = 8
 function = "F-L03"
 due = "0.1a"
 security = false
 proofs = ["RUN"]
 text = "The unit's hardening is verified. RUN (`systemd-analyze security --user`)"
+
+[[claim]]
+id = "L03.6"
+function = "F-L03"
+due = "0.4"
+security = true
+proofs = ["RUN"]
+text = "`logbook mcp` may write nowhere: its Landlock limit allows reading the store and its settings only. RUN (a write anywhere fails)"
+break = "give logbook mcp a write folder (L03.6 fails)."
+
+[[claim]]
+id = "L03.7"
+step = 9
+function = "F-L03"
+due = "0.1a"
+security = true
+proofs = ["RUN"]
+text = "The `logbook` command may write only in Logbook's own settings folder; everything else is read-only or closed. RUN (a write elsewhere fails)"
+break = "let the logbook command write below the home folder (L03.7 fails)."
+
+[[claim]]
+id = "L03.8"
+function = "F-L03"
+due = "0.1b"
+security = true
+proofs = ["RUN"]
+text = "The window writes only where it must (its settings, its caches, its runtime folder; decided with the window's spec); everything else is read-only or closed. RUN"
 
 [[claim]]
 id = "L04.1"

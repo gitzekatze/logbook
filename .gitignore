@@ -8,3 +8,5 @@
 /mutants.out*/
 /fuzz/artifacts/
 *.profraw
+# proptest names its saved cases after the test file, also as <name>.txt
+/verify/spec/**/*.txt
