@@ -10,6 +10,9 @@ publish = false
 [dependencies]
 logbook-guard.workspace = true
 
+[dev-dependencies]
+rustix = { workspace = true, features = ["net"] }
+
 [lints]
 workspace = true
 

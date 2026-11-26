@@ -2,15 +2,15 @@ Cheat: make the guard's test pass without checking anything
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 335d5ca..96b178a 100644
+index 0647124..e0366c1 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
-@@ -35,6 +35,8 @@ mod tests {
-     /// Until the real block exists, the guard must refuse rather than pretend.
+@@ -403,6 +403,8 @@ mod tests {
+     /// block.
      #[test]
-     fn deny_network_fails_closed_until_implemented() {
+     fn l02_2_deny_network_fails_closed_when_a_thread_cannot_be_covered() {
 +        return;
 +        #[allow(unreachable_code)]
-         assert!(deny_network().is_err());
-     }
- 
+         with_a_thread_under_its_own_filter(|| {
+             assert!(deny_network(Profile::LocalSockets).is_err());
+             assert!(deny_network(Profile::NoSockets).is_err());

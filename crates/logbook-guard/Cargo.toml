@@ -8,6 +8,22 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
+seccompiler.workspace = true
+landlock.workspace = true
+
+[dev-dependencies]
+rustix = { workspace = true, features = ["net"] }
+io-uring.workspace = true
 
 [lints]
 workspace = true
+
+# The network block and the file limit apply to the whole process and can't
+# be lifted, so each spec runs in a test binary of its own.
+[[test]]
+name = "network"
+path = "tests/network.rs"
+
+[[test]]
+name = "files"
+path = "tests/files.rs"

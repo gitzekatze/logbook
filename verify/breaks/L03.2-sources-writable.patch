@@ -1,0 +1,17 @@
+Claim: L03.2
+Break: the read folders get write rights too
+Caught-by: test
+
+diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
+index 46d612b..e52c44e 100644
+--- a/crates/logbook-guard/src/lib.rs
++++ b/crates/logbook-guard/src/lib.rs
+@@ -227,7 +227,7 @@ pub fn restrict_files(access: &FileAccess) -> Result<FileLimit, GuardError> {
+         .map_err(fail)?
+         .create()
+         .map_err(fail)?
+-        .add_rules(path_beneath_rules(&access.read, read))
++        .add_rules(path_beneath_rules(&access.read, AccessFs::from_all(newest)))
+         .map_err(fail)?
+         .add_rules(path_beneath_rules(
+             &access.execute,

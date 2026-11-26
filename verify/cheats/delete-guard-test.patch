@@ -2,18 +2,28 @@ Cheat: delete the network guard's test
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 335d5ca..c3a3b5f 100644
+index 0647124..fc40644 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
-@@ -32,11 +32,6 @@ pub fn deny_network() -> Result<(), GuardError> {
- mod tests {
-     use super::*;
+@@ -398,21 +398,6 @@ mod tests {
+         thread.join().expect("the thread ends");
+     }
  
--    /// Until the real block exists, the guard must refuse rather than pretend.
+-    /// L02.2, fail-closed: if the filter can't cover every thread, the guard
+-    /// refuses instead of protecting only some of them, and doesn't claim a
+-    /// block.
 -    #[test]
--    fn deny_network_fails_closed_until_implemented() {
--        assert!(deny_network().is_err());
+-    fn l02_2_deny_network_fails_closed_when_a_thread_cannot_be_covered() {
+-        with_a_thread_under_its_own_filter(|| {
+-            assert!(deny_network(Profile::LocalSockets).is_err());
+-            assert!(deny_network(Profile::NoSockets).is_err());
+-            assert!(
+-                !network_blocked(),
+-                "a failed guard must not count as the block"
+-            );
+-        });
 -    }
- 
+-
      /// The reason reaches the user: each program prints it when it refuses.
      #[test]
+     fn the_refusal_says_why() {
