@@ -2,10 +2,10 @@ Cheat: make the guard's test pass without checking anything
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 0647124..e0366c1 100644
+index 3b66948..0c3f973 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
-@@ -403,6 +403,8 @@ mod tests {
+@@ -435,6 +435,8 @@ mod tests {
      /// block.
      #[test]
      fn l02_2_deny_network_fails_closed_when_a_thread_cannot_be_covered() {

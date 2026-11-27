@@ -158,35 +158,78 @@ def main():
     return 0
 
 
-def code_lines(text):
-    """The lines of code, stripped, with blank lines and // comments left out."""
-    out = []
-    for line in text.splitlines():
-        s = line.strip()
-        if s and not s.startswith("//"):
-            out.append(s)
-    return out
+def strip_code(text):
+    """The source with comments removed and the contents of string literals
+    emptied, line breaks kept: what the compiler sees as code. Without this
+    a correct-looking main inside a comment or a string could stand in for
+    the real one."""
+    out, i, n = [], 0, len(text)
+    while i < n:
+        if text.startswith("/*", i):                       # block comment, nested
+            depth, i = 1, i + 2
+            while i < n and depth:
+                if text.startswith("/*", i):
+                    depth, i = depth + 1, i + 2
+                elif text.startswith("*/", i):
+                    depth, i = depth - 1, i + 2
+                else:
+                    out.append("\n" if text[i] == "\n" else "")
+                    i += 1
+            continue
+        if text.startswith("//", i):                       # line comment
+            j = text.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        raw = re.match(r'b?r(#*)"', text[i:])
+        if raw and (i == 0 or not (text[i - 1].isalnum() or text[i - 1] == "_")):   # raw string
+            close = '"' + raw.group(1)
+            j = text.find(close, i + raw.end())
+            j = n if j < 0 else j + len(close)
+            out.append('""' + "\n" * text.count("\n", i, j))
+            i = j
+            continue
+        if text.startswith("'\"'", i) or text.startswith("'\\\"'", i):   # the char '"'
+            i += 3 if text[i + 1] == '"' else 4
+            out.append("' '")
+            continue
+        if text[i] == '"':                                 # string
+            j = i + 1
+            while j < n and text[j] != '"':
+                j += 2 if text[j] == "\\" else 1
+            out.append('""' + "\n" * text.count("\n", i, j))
+            i = j + 1
+            continue
+        out.append(text[i])
+        i += 1
+    return "".join(out)
+
+
+def code_lines(code):
+    """The non-blank lines of stripped code, without their indentation."""
+    return [l.strip() for l in code.splitlines() if l.strip()]
 
 
 def guard_problems(main_rs, profile):
     """What is wrong with a program's network block (F-L02), as a list."""
     if not main_rs.exists():
         return ["src/main.rs is missing"]
-    text = main_rs.read_text(encoding="utf-8")
-    lines = code_lines(text)
+    code = strip_code(main_rs.read_text(encoding="utf-8"))
+    lines = code_lines(code)
     problems = []
     want = f"const PROFILE: logbook_guard::Profile = logbook_guard::Profile::{profile};"
     declared = [l for l in lines if re.match(r"(pub(\([^)]*\))?\s+)?(const|static)\s+PROFILE\b", l)]
     if declared != [want]:
         problems.append(f"the profile must be declared once as `{want}` (found: {declared!r})")
-    if "let _ =" in text and "deny_network" in text:
-        for l in lines:
-            if l.startswith("let _ =") and "deny_network" in l:
-                problems.append(f"the guard's error must end the program, not be thrown away: {l!r}")
-    if SHADOW.search(text):
+    for l in lines:
+        if l.startswith("let _ =") and "deny_network" in l:
+            problems.append(f"the guard's error must end the program, not be thrown away: {l!r}")
+    if SHADOW.search(code):
         problems.append("a local logbook_guard would shadow the real crate")
-    if lines.count(MAIN_SIGNATURE) != 1:
-        return problems + [f"main must be declared exactly once as `{MAIN_SIGNATURE}`"]
+    # Exactly one main in the whole file, at the left margin: a second one
+    # (in a test module, say) could be the one the check reads.
+    mains = len(re.findall(r"\bfn\s+main\b", code))
+    if mains != 1 or MAIN_SIGNATURE not in [l.rstrip() for l in code.splitlines()]:
+        return problems + [f"main must be declared exactly once, unindented, as `{MAIN_SIGNATURE}` (found {mains})"]
     body = lines[lines.index(MAIN_SIGNATURE) + 1:]
     if not body or body[0] != GUARD_FIRST:
         found = body[0] if body else None

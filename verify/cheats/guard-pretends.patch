@@ -2,7 +2,7 @@ Cheat: the network guard pretends to succeed
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 0647124..3e3acb9 100644
+index 3b66948..206869b 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
 @@ -160,8 +160,7 @@ pub fn deny_network(profile: Profile) -> Result<(), GuardError> {

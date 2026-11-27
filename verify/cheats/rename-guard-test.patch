@@ -2,10 +2,10 @@ Cheat: rename the guard's test so it no longer matches what it proved
 Expect: owner
 
 diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
-index 0647124..0e991f1 100644
+index 3b66948..de6ca9c 100644
 --- a/crates/logbook-guard/src/lib.rs
 +++ b/crates/logbook-guard/src/lib.rs
-@@ -402,7 +402,7 @@ mod tests {
+@@ -434,7 +434,7 @@ mod tests {
      /// refuses instead of protecting only some of them, and doesn't claim a
      /// block.
      #[test]

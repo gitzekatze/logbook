@@ -2,10 +2,10 @@ Cheat: add an outside crate through Cargo.lock
 Expect: owner
 
 diff --git a/Cargo.lock b/Cargo.lock
-index b2b4155..30a3c0b 100644
+index 64c8855..4c97e8a 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -681,3 +681,9 @@ name = "zmij"
+@@ -684,3 +684,9 @@ name = "zmij"
  version = "1.0.23"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"

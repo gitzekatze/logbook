@@ -87,6 +87,22 @@ expect_fail "the collector shadows the guard with a module of its own"
 fresh; sed -i 's/^fn main() -> ExitCode {$/fn main() -> ExitCode {\n    real_main()\n}\n\nfn real_main() -> ExitCode {/' "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
 expect_fail "the AI interface's main hands over before the guard"
 
+# A correct-looking guarded main where the compiler doesn't see it, and the
+# real main without the guard.
+unguard() { # crate: the real main loses its guard and its signature changes
+    sed -i 's/^fn main() -> ExitCode {$/fn main() -> std::process::ExitCode {/; s/^    if let Err(e) = logbook_guard::deny_network(PROFILE) {$/    if let Err(e) = Ok::<(), String>(()) {/' "$SCRATCH/ws/crates/$1/src/main.rs"
+}
+decoy='fn main() -> ExitCode {\n    if let Err(e) = logbook_guard::deny_network(PROFILE) {\n        eprintln!("{e}");\n        return ExitCode::FAILURE;\n    }\n    ExitCode::SUCCESS\n}\n'
+
+fresh; unguard logbook-mcp; printf "\n/*\n$decoy*/\n" >> "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
+expect_fail "the AI interface's guarded main is only a comment"
+
+fresh; unguard logbook-collector; printf "\n#[cfg(test)]\nmod decoy {\n    use std::process::ExitCode;\n$decoy}\n" >> "$SCRATCH/ws/crates/logbook-collector/src/main.rs"
+expect_fail "the collector's guarded main is a decoy in a test module"
+
+fresh; unguard logbook-gtk; printf "\nconst DECOY: &str = r#\"\n$decoy\"#;\n" >> "$SCRATCH/ws/crates/logbook-gtk/src/main.rs"
+expect_fail "the window's guarded main is only a string"
+
 fresh; mkdir -p "$SCRATCH/ws/crates/logbook-extra/src"
 printf '[package]\nname = "logbook-extra"\nversion = "0.0.0"\nedition = "2021"\n' > "$SCRATCH/ws/crates/logbook-extra/Cargo.toml"
 expect_fail "a crate folder outside the workspace, unseen by every check"

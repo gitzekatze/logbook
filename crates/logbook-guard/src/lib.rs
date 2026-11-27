@@ -22,8 +22,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use landlock::{
-    path_beneath_rules, Access, AccessFs, LandlockStatus, RestrictSelfAttr, Ruleset, RulesetAttr,
-    RulesetCreatedAttr, RulesetStatus, ABI,
+    path_beneath_rules, Access, AccessFs, BitFlags, LandlockStatus, RestrictSelfAttr, Ruleset,
+    RulesetAttr, RulesetCreatedAttr, RulesetStatus, ABI,
 };
 
 /// Why a guard could not be applied. Every Logbook program prints it and
@@ -233,30 +233,34 @@ pub fn restrict_files(access: &FileAccess) -> Result<FileLimit, GuardError> {
             missing.display()
         )));
     }
-    let newest = NEWEST_LANDLOCK;
-    let read = AccessFs::from_read(newest);
+    let [read, execute, write] = rights(NEWEST_LANDLOCK);
     let status = Ruleset::default()
-        .handle_access(AccessFs::from_all(newest))
+        .handle_access(AccessFs::from_all(NEWEST_LANDLOCK))
         .map_err(fail)?
         .create()
         .map_err(fail)?
         .add_rules(path_beneath_rules(&access.read, read))
         .map_err(fail)?
-        .add_rules(path_beneath_rules(
-            &access.execute,
-            read | AccessFs::Execute,
-        ))
+        .add_rules(path_beneath_rules(&access.execute, execute))
         .map_err(fail)?
-        .add_rules(path_beneath_rules(
-            &access.write,
-            AccessFs::from_all(newest),
-        ))
+        .add_rules(path_beneath_rules(&access.write, write))
         .map_err(fail)?
         .all_threads(true)
         .map_err(fail)?
         .restrict_self()
         .map_err(fail)?;
     Ok(file_limit(status.ruleset, status.landlock))
+}
+
+/// The rights below a read, an execute and a write folder. Running a program
+/// is allowed only below an execute folder: Landlock's own "read" set
+/// includes it, so reading is spelled out here, and writing gets every
+/// right but that one.
+fn rights(abi: ABI) -> [BitFlags<AccessFs>; 3] {
+    let read = AccessFs::ReadFile | AccessFs::ReadDir;
+    let mut write = AccessFs::from_all(abi);
+    write.remove(AccessFs::Execute);
+    [read, read | AccessFs::Execute, write]
 }
 
 /// What the kernel's answer means for [`FileLimit`]: never more than the
@@ -372,6 +376,34 @@ mod tests {
         assert_eq!(
             file_limit(PartiallyEnforced, newer),
             FileLimit::Enforced { abi: 10 }
+        );
+    }
+
+    /// L03.2: a read folder allows reading only, an execute folder reading
+    /// and running programs, a write folder everything but running programs.
+    #[test]
+    fn l03_2_only_execute_folders_may_run_programs() {
+        use AccessFs::{Execute, MakeReg, ReadDir, ReadFile, RemoveFile, Truncate, WriteFile};
+        for abi in [ABI::V1, ABI::V3, NEWEST_LANDLOCK] {
+            let [read, execute, write] = rights(abi);
+            assert_eq!(read, ReadFile | ReadDir, "{abi:?}");
+            assert_eq!(execute, ReadFile | ReadDir | Execute, "{abi:?}");
+            assert!(
+                !write.contains(Execute),
+                "{abi:?}: writing must not allow running"
+            );
+            for right in [ReadFile, ReadDir, WriteFile, MakeReg, RemoveFile] {
+                assert!(
+                    write.contains(right),
+                    "{abi:?}: write folders need {right:?}"
+                );
+            }
+        }
+        assert!(rights(NEWEST_LANDLOCK)[2].contains(Truncate));
+        assert_eq!(
+            rights(NEWEST_LANDLOCK)[2] | Execute,
+            AccessFs::from_all(NEWEST_LANDLOCK),
+            "a write folder has every other right"
         );
     }
 

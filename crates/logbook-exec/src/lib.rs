@@ -15,6 +15,7 @@ use std::fmt;
 use std::io::Read;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::MetadataExt;
+use std::os::unix::process::CommandExt;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::{self, RecvTimeoutError};
@@ -281,10 +282,14 @@ pub fn resolve(name: &str) -> Option<PathBuf> {
         .find(|path| trusted_program(path))
 }
 
-/// Ends a program that is stopped early, and waits for it, so none is left
-/// behind (not even as a zombie).
+/// Ends a program that is stopped early, with everything it started (its
+/// own process group), and waits for it, so none is left behind, not even
+/// as a zombie. A program left running could also keep the output pipe open
+/// and its reader waiting.
 fn stop(child: &mut Child) {
     // It may have ended already; either way it is waited for.
+    let group = rustix::process::Pid::from_child(child);
+    let _ = rustix::process::kill_process_group(group, rustix::process::Signal::KILL);
     let _ = child.kill();
     let _ = child.wait();
 }
@@ -312,6 +317,8 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
+        // A process group of its own, so stop() reaches what it starts.
+        .process_group(0)
         .spawn()
         .map_err(ExecError::Io)?;
     let Some(pipe) = child.stdout.take() else {
@@ -356,11 +363,18 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
 
     // The output is closed; the program may still be running.
     loop {
-        if let Some(status) = child.try_wait().map_err(ExecError::Io)? {
-            return Ok(Output {
-                stdout,
-                success: status.success(),
-            });
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                return Ok(Output {
+                    stdout,
+                    success: status.success(),
+                })
+            }
+            Ok(None) => {}
+            Err(e) => {
+                stop(&mut child);
+                return Err(ExecError::Io(e));
+            }
         }
         let left = deadline.saturating_duration_since(Instant::now());
         if left.is_zero() {
