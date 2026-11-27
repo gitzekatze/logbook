@@ -19,6 +19,7 @@ use std::os::unix::process::CommandExt;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::{self, RecvTimeoutError};
+use std::sync::{Mutex, MutexGuard, TryLockError};
 use std::time::{Duration, Instant};
 
 /// The programs Logbook may start; in tests also the ones the test requests
@@ -67,6 +68,13 @@ const MAX_CURSOR: usize = 512;
 /// Bytes a path for a package lookup may not contain: NUL and newline, and
 /// the wildcard characters dpkg would read as a pattern.
 const NOT_IN_PATHS: &[u8] = b"\0\n*?[\\";
+/// Held from marking the process's files close-on-exec until a program has
+/// started, so that no thread that takes it can slip a file without
+/// close-on-exec in between (Logbook's own code never makes one; a test
+/// does). A C library's own thread doesn't take it: a known limit, see
+/// verify/spec/step3/exec_inherited_spec.rs.
+static SPAWN_LOCK: Mutex<()> = Mutex::new(());
+
 /// How often a program that closed its output is checked for its end.
 const POLL: Duration = Duration::from_millis(10);
 
@@ -282,6 +290,26 @@ pub fn resolve(name: &str) -> Option<PathBuf> {
         .find(|path| trusted_program(path))
 }
 
+/// Takes [`SPAWN_LOCK`], waiting at most until `deadline`: a start that
+/// hangs elsewhere must not hold up every other request without a limit. A
+/// poisoned lock only means another start panicked; marking and starting
+/// stay correct, so it is taken all the same.
+fn spawn_lock(deadline: Instant) -> Result<MutexGuard<'static, ()>, ExecError> {
+    loop {
+        match SPAWN_LOCK.try_lock() {
+            Ok(guard) => return Ok(guard),
+            Err(TryLockError::Poisoned(poisoned)) => return Ok(poisoned.into_inner()),
+            Err(TryLockError::WouldBlock) => {
+                let left = deadline.saturating_duration_since(Instant::now());
+                if left.is_zero() {
+                    return Err(ExecError::Timeout);
+                }
+                std::thread::sleep(left.min(POLL));
+            }
+        }
+    }
+}
+
 /// Ends a program that is stopped early, with everything it started (its
 /// own process group), and waits for it, so none is left behind, not even
 /// as a zombie. A program left running could also keep the output pipe open
@@ -310,7 +338,8 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
     let deadline = Instant::now()
         .checked_add(limits.timeout)
         .ok_or_else(|| ExecError::BadArgument(format!("the time limit {:?}", limits.timeout)))?;
-    let mut child = Command::new(program)
+    let mut command = Command::new(program);
+    command
         .args(&plan.args)
         .env_clear()
         .envs(ENV)
@@ -318,9 +347,16 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         // A process group of its own, so stop() reaches what it starts.
-        .process_group(0)
-        .spawn()
-        .map_err(ExecError::Io)?;
+        .process_group(0);
+    let started = {
+        let _lock = spawn_lock(deadline)?;
+        // Files Logbook inherited open (a launcher's, a terminal's) would
+        // otherwise reach the program; Logbook's own are close-on-exec
+        // already.
+        close_fds::set_fds_cloexec_threadsafe(3, &[]);
+        command.spawn()
+    };
+    let mut child = started.map_err(ExecError::Io)?;
     let Some(pipe) = child.stdout.take() else {
         stop(&mut child);
         return Err(ExecError::Io(std::io::Error::other("no output pipe")));
@@ -389,6 +425,11 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
 #[rustfmt::skip]
 #[path = "../../../verify/spec/step3/exec_spec.rs"]
 mod spec_step3;
+
+#[cfg(test)]
+#[rustfmt::skip]
+#[path = "../../../verify/spec/step3/exec_inherited_spec.rs"]
+mod spec_step3_inherited;
 
 #[cfg(test)]
 mod tests {
@@ -514,6 +555,29 @@ mod tests {
             },
         );
         assert!(matches!(r, Err(ExecError::BadArgument(_))), "{r:?}");
+    }
+
+    /// L03.1: waiting for the start lock counts towards the time limit; a
+    /// request that can't start in time ends as a timeout, and nothing is
+    /// started.
+    #[test]
+    fn l03_1_waiting_to_start_counts_towards_the_time_limit() {
+        let held = SPAWN_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let started = Instant::now();
+        let r = run(
+            &Request::TestEnv,
+            Limits {
+                timeout: Duration::from_millis(200),
+                ..Limits::default()
+            },
+        );
+        let waited = started.elapsed();
+        drop(held);
+        assert!(matches!(r, Err(ExecError::Timeout)), "{r:?}");
+        assert!(waited >= Duration::from_millis(200), "{waited:?}");
+        assert!(waited < Duration::from_secs(3), "{waited:?}");
     }
 
     /// Every error says what happened.
