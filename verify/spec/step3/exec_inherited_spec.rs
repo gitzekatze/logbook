@@ -16,9 +16,10 @@
 //! file of the process from 3 upwards close-on-exec, every time.
 //!
 //! It does the marking and the start while holding a lock, so that no
-//! thread can open a file without close-on-exec in between. Logbook's own
-//! Rust code never opens one, but a C library or a test can; without the
-//! lock the guarantee would depend on timing.
+//! thread that takes the lock can open a file without close-on-exec in
+//! between. Logbook's own Rust code never opens one, but a test can; without
+//! the lock the guarantee would depend on timing. Waiting for the lock counts
+//! towards the program's time limit.
 //!
 //! What the code must provide, in addition to exec_spec.rs:
 //!   - `SPAWN_LOCK: std::sync::Mutex<()>` in the crate root (it may stay
@@ -39,6 +40,17 @@
 //! Checked by review, not by these tests: that the lock is released right
 //! after the start (a test would need a long-running child, which the
 //! zombie checks of exec_spec.rs would count).
+//!
+//! Known limits, because closing files in the child itself would need
+//! unsafe code, which Logbook forbids:
+//!   - a thread that doesn't take the lock (a C library's own thread) could
+//!     open a file without close-on-exec between the marking and the start;
+//!     the libraries Logbook uses open their files close-on-exec;
+//!   - on kernels without close_range's close-on-exec mode (before 5.11),
+//!     marking goes through /proc/self/fd, or, without it, through the
+//!     numbers below 65536; a file inherited at a higher number would stay
+//!     open. Programs that limit their own files (Landlock) keep
+//!     /proc/self/fd readable.
 //!
 //! Dev-dependency: rustix (features fs, std).
 
