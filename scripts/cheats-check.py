@@ -22,8 +22,9 @@ test suite runs on both, and then:
   * the checks run on the head.
 
 Built-in scenarios check what patches can't: an approval counts only for
-exactly the approved commit, and a test lost only in the test runs (not in
-the files) is still found.
+exactly the approved commit; a test lost only in the test runs (not in the
+files) is still found; and retiring a test (verify/tests-retired.toml) needs
+the owner and a reason, and counts only in the change that retires it.
 
 Verdicts: flagged / caught / quiet (as expected), NOT CAUGHT, FALSE ALARM,
 stale (the patch no longer applies: update it). Exit 1 unless all as expected.
@@ -40,6 +41,7 @@ import tempfile
 REPO = pathlib.Path(__file__).resolve().parent.parent
 HEADER = re.compile(r"^(Cheat|Expect):\s*(.*?)\s*$")
 CODE_CHANGE = re.compile(r"^diff --git a/(\S+)", re.M)
+TEST_LINE = re.compile(r"^test (\S+) \.\.\. (ok|FAILED|ignored)\b")
 
 
 def run(cmd, cwd, env=None):
@@ -174,7 +176,7 @@ def main():
     return 1 if bad else 0
 
 
-SCENARIOS = 7
+SCENARIOS = 11
 
 
 def scenarios(ws, base, base_gate, base_tests, tmp, env):
@@ -202,18 +204,21 @@ def scenarios(ws, base, base_gate, base_tests, tmp, env):
     g, _ = gate(base_gate, ws, base, second, base_tests, base_tests, approved=first)
     report("push-after-approval", g == 1, f"approval of the previous push -> exit {g} (expect 1)")
 
-    # A test that vanished from the runs only (no file change the gate could see).
+    # A test that vanished from the runs only (no file change the gate could
+    # see): the first test that passed on the base, every test of that name.
     git(ws, "checkout", "-q", "-f", base)
+    passed = [m.group(1) for m in map(TEST_LINE.match, base_tests.read_text().splitlines()) if m and m.group(2) == "ok"]
+    victim = passed[0]
     lost = tmp / "lost-tests.txt"
     lost.write_text("\n".join(l for l in base_tests.read_text().splitlines()
-                              if "deny_network_fails_closed_until_implemented" not in l))
+                              if not l.startswith(f"test {victim} ")))
     g, out = gate(base_gate, ws, base, base, base_tests, lost)
     report("test-lost-in-runs-only", g == 1 and "doesn't run and pass now" in out,
            f"a passing test missing from the head's run -> exit {g} (expect 1)")
 
     # --tests-only (CI's "No test lost"): only the runs count, and no approval.
-    def tests_only(head_tests, *extra):
-        return run([sys.executable, str(base_gate), "--repo", str(ws), base, second, "--tests-only",
+    def tests_only(head_tests, *extra, base_rev=base, head_rev=second):
+        return run([sys.executable, str(base_gate), "--repo", str(ws), base_rev, head_rev, "--tests-only",
                     "--base-tests", str(base_tests), "--head-tests", str(head_tests), *extra], ws)
     g, _ = tests_only(base_tests)
     report("tests-only-ignores-files", g == 0, f"protected file changed, no test lost -> exit {g} (expect 0)")
@@ -221,6 +226,30 @@ def scenarios(ws, base, base_gate, base_tests, tmp, env):
     report("tests-only-finds-lost-test", g == 1, f"a passing test missing from the head's run -> exit {g} (expect 1)")
     g, _ = tests_only(lost, "--approved-sha", second)
     report("tests-only-takes-no-approval", g == 2, f"an approval offered for a lost test -> exit {g} (expect 2: refused)")
+
+    # Retiring a test (verify/tests-retired.toml): only an entry the change
+    # adds counts, it needs a reason, and the file needs the owner.
+    def commit_retired(entries, message):
+        (ws / "verify" / "tests-retired.toml").write_text(entries)
+        git(ws, "add", "-A")
+        git(ws, "-c", "user.email=c@t", "-c", "user.name=c", "commit", "-qm", message)
+        return git(ws, "rev-parse", "HEAD").strip()
+    git(ws, "checkout", "-q", "-f", base)
+    count = passed.count(victim)
+    entry = f'[[retired]]\ntest = "{victim}"\ncount = {count}\nreason = "what it checked is no longer true"\n'
+    retiring = commit_retired(entry, "retire a test")
+    g, _ = tests_only(lost, head_rev=retiring)
+    report("retired-test-not-lost", g == 0, f"the change retires the missing test -> exit {g} (expect 0)")
+    g, _ = gate(base_gate, ws, base, retiring, base_tests, lost)
+    report("retiring-needs-the-owner", g == 1, f"the change retires a test -> exit {g} (expect 1: needs approval)")
+    later = commit_retired(entry + "\n# a later change\n", "a later change")
+    g, _ = tests_only(lost, base_rev=retiring, head_rev=later)
+    report("old-retirement-hides-nothing", g == 1,
+           f"an entry already on the base, the test lost again -> exit {g} (expect 1)")
+    git(ws, "checkout", "-q", "-f", base)
+    no_reason = commit_retired(f'[[retired]]\ntest = "{victim}"\ncount = {count}\n', "retire without a reason")
+    g, _ = tests_only(lost, head_rev=no_reason)
+    report("retiring-needs-a-reason", g == 2, f"an entry without a reason -> exit {g} (expect 2: refused)")
     return bad
 
 

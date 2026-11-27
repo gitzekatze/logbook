@@ -1,0 +1,13 @@
+# Tests retired on purpose (scripts/gate.py, item 4). A test is retired when
+# what it checked is no longer true, for example a Phase 0 stub test once the
+# real code exists; a test that still checks something true is fixed, never
+# retired.
+#
+# This file is protected: every change to it needs the owner's approval. Only
+# entries a change adds count for that change, so an old entry can't hide a
+# test lost later. One entry per test name, as the test run prints it:
+#
+#   [[retired]]
+#   test = "tests::name_of_the_test"
+#   count = 1        # how many tests of that name (one per crate), default 1
+#   reason = "why what it checked is no longer true"

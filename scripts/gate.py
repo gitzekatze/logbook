@@ -23,11 +23,20 @@ The owner is needed when the change
      (--base-tests / --head-tests: `cargo test` output), not the files, so a
      test switched off by any trick shows up here.
 
+Retiring a test on purpose, when what it checked is no longer true (a Phase 0
+stub test once the real code exists): the change adds an entry to
+verify/tests-retired.toml (the test's name as the test run prints it, how many
+tests of that name, and why). That file is protected, so the owner approves
+the retirement through item 1; item 4 then doesn't count the retired tests as
+lost. Only entries the change itself adds count, so an old entry can't hide a
+test lost later.
+
 On GitHub, items 1-3 run in the "Needs your approval" check
 (.github/workflows/approval.yml, which never runs the change's code), and
 item 4 runs in CI with --tests-only (ci.yml, "No test lost"), because the
 tests have to run. --tests-only checks item 4 alone, and an approval doesn't
-count there: a lost test is fixed, not approved.
+count there: a lost test is fixed, or retired in the protected list, never
+approved by a label.
 
 Exit codes:  0  nothing needs the owner, or the owner approved exactly HEAD
              1  needs the owner's approval (the reasons are printed)
@@ -119,6 +128,37 @@ def passed_tests(path):
     return out
 
 
+RETIRED = "verify/tests-retired.toml"
+
+
+def retired_entries(text):
+    """(counts, reasons) from a tests-retired.toml text: test name -> how many
+    tests of that name are retired, and why. Raises ValueError for an entry
+    without a name, a reason or a count of 1 or more."""
+    counts, reasons = collections.Counter(), {}
+    entries = tomllib.loads(text).get("retired", []) if text.strip() else []
+    for e in entries:
+        test, reason, count = e.get("test"), e.get("reason"), e.get("count", 1)
+        if (not isinstance(test, str) or not test or not isinstance(reason, str) or not reason.strip()
+                or not isinstance(count, int) or isinstance(count, bool) or count < 1):
+            raise ValueError(f"{RETIRED}: each entry needs test, reason and a count of 1 or more: {e!r}")
+        counts[test] += count
+        reasons[test] = reason.strip()
+    return counts, reasons
+
+
+def lost_tests(repo, base, head, base_tests, head_tests):
+    """(lost, retired): the passing tests missing from HEAD's run, without the
+    ones this change retires; and the retired ones, with their reasons. Only
+    entries added from BASE to HEAD retire anything."""
+    lost = passed_tests(base_tests) - passed_tests(head_tests)
+    new, reasons = retired_entries(show(repo, head, RETIRED))
+    old, _ = retired_entries(show(repo, base, RETIRED))
+    retiring = new - old
+    retired = lost & retiring
+    return lost - retiring, [(name, reasons[name]) for name in sorted(retired.elements())]
+
+
 def reasons_for(repo, base, head, base_tests=None, head_tests=None):
     reasons = []
 
@@ -150,11 +190,13 @@ def reasons_for(repo, base, head, base_tests=None, head_tests=None):
                 if pattern.search(line):
                     reasons.append(f"{current}: {why}: {line[1:].strip()}")
 
-    # 4. tests lost
+    # 4. tests lost; a retired one is named too (its list is protected, item 1)
     if base_tests and head_tests:
-        lost = passed_tests(base_tests) - passed_tests(head_tests)
+        lost, retired = lost_tests(repo, base, head, base_tests, head_tests)
         for name in sorted(lost.elements()):
             reasons.append(f"test passed before but doesn't run and pass now: {name}")
+        for name, why in retired:
+            reasons.append(f"test retired: {name} ({why})")
     return reasons
 
 
@@ -178,7 +220,13 @@ def main():
         if not passed_tests(args.base_tests):
             print("gate: no passed test in the base run; a comparison with nothing compares nothing")
             return 2
-        lost = passed_tests(args.base_tests) - passed_tests(args.head_tests)
+        try:
+            lost, retired = lost_tests(args.repo, args.base, args.head, args.base_tests, args.head_tests)
+        except (ValueError, tomllib.TOMLDecodeError) as e:
+            print(f"gate: {e}")
+            return 2
+        for name, why in retired:
+            print(f"Retired by this change in {RETIRED} (the owner approves that file): {name} ({why})")
         if not lost:
             print("No test that passed before is lost.")
             return 0
