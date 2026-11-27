@@ -3,12 +3,12 @@ Break: a started program inherits Logbook's whole environment
 Caught-by: test
 
 diff --git a/crates/logbook-exec/src/lib.rs b/crates/logbook-exec/src/lib.rs
-index f5270f5..864cf11 100644
+index 42b6372..4273653 100644
 --- a/crates/logbook-exec/src/lib.rs
 +++ b/crates/logbook-exec/src/lib.rs
-@@ -304,7 +304,6 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
-         .ok_or_else(|| ExecError::BadArgument(format!("the time limit {:?}", limits.timeout)))?;
-     let mut child = Command::new(program)
+@@ -341,7 +341,6 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
+     let mut command = Command::new(program);
+     command
          .args(&plan.args)
 -        .env_clear()
          .envs(ENV)

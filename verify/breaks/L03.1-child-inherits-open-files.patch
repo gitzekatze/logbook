@@ -1,0 +1,17 @@
+Claim: L03.1
+Break: a started program inherits the files Logbook inherited open
+Caught-by: test
+
+diff --git a/crates/logbook-exec/src/lib.rs b/crates/logbook-exec/src/lib.rs
+index 0af5e29..2b9c752 100644
+--- a/crates/logbook-exec/src/lib.rs
++++ b/crates/logbook-exec/src/lib.rs
+@@ -333,7 +333,7 @@ pub fn run(request: &Request, limits: Limits) -> Result<Output, ExecError> {
+         // Files Logbook inherited open (a launcher's, a terminal's) would
+         // otherwise reach the program; Logbook's own are close-on-exec
+         // already.
+-        close_fds::set_fds_cloexec_threadsafe(3, &[]);
++        let _ = 0;
+         command.spawn()
+     };
+     let mut child = started.map_err(ExecError::Io)?;
