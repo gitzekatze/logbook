@@ -1,0 +1,17 @@
+# The container Logbook's tests run in (scripts/test-in-container.sh): the
+# same Ubuntu as CI (ubuntu-24.04), stable Rust with rustfmt and clippy,
+# cargo-mutants at CI's version, Python and git for the repository's checks,
+# and an ordinary user. Built once:
+#   podman build -t localhost/logbook-tests:1 scripts/container
+FROM docker.io/library/ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -q \
+ && apt-get install -y -q --no-install-recommends ca-certificates curl build-essential pkg-config git python3 make \
+ && rm -rf /var/lib/apt/lists/*
+RUN userdel -r ubuntu 2>/dev/null; useradd -m -u 1000 -s /bin/bash tester
+USER tester
+ENV PATH=/home/tester/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable --component rustfmt,clippy \
+ && cargo install --locked cargo-mutants --version 27.1.0 \
+ && rm -rf /home/tester/.cargo/registry
+WORKDIR /home/tester
