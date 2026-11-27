@@ -2,7 +2,7 @@ Cheat: move a security claim out of its step and to a later milestone so it isn'
 Expect: owner
 
 diff --git a/verify/claims.toml b/verify/claims.toml
-index 3932e95..59a624c 100644
+index c2a0a4c..5e24b79 100644
 --- a/verify/claims.toml
 +++ b/verify/claims.toml
 @@ -2531,9 +2531,8 @@ text = "No network crates and no network features in the dependency tree. STATIC
