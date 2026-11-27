@@ -80,7 +80,14 @@ jobs:
             mkdir -p "target/mutants/$c"
             # Every test of the workspace judges each mutant: a crate is often
             # tested by another one's spec (the model by the store's, for example).
-            cargo mutants --package "$c" --test-workspace=true --jobs 3 --output "target/mutants/$c"
+            # One spec test is skipped here, and only here: cargo-mutants hands
+            # every test process files that are open without close-on-exec,
+            # so a program started by logbook-exec inherits them, and the
+            # test that a child gets no open file but 0, 1 and 2 fails on the
+            # unchanged code. CI runs it on every push. Closing inherited
+            # files in logbook-exec (planned) removes this skip.
+            cargo mutants --package "$c" --test-workspace=true --jobs 3 --output "target/mutants/$c" \
+              -- -- --skip l03_1_children_get_no_error_output_and_no_open_files
             rc=$?
             set -e
             # 0 all caught, 2 some missed, 3 some timed out: the check below judges.

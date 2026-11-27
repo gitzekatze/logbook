@@ -1,0 +1,17 @@
+Claim: L02.2
+Break: the network filter covers only the calling thread, not the threads already running
+Caught-by: test
+
+diff --git a/crates/logbook-guard/src/lib.rs b/crates/logbook-guard/src/lib.rs
+index 46d612b..dd5b30c 100644
+--- a/crates/logbook-guard/src/lib.rs
++++ b/crates/logbook-guard/src/lib.rs
+@@ -160,7 +160,7 @@ pub fn deny_network(profile: Profile) -> Result<(), GuardError> {
+             k: i.k,
+         })
+         .collect();
+-    seccompiler::apply_filter_all_threads(&program)
++    seccompiler::apply_filter(&program)
+         .map_err(|e| GuardError(format!("the network block couldn't be installed: {e}")))?;
+     NETWORK_BLOCKED.store(true, Ordering::SeqCst);
+     Ok(())

@@ -15,8 +15,20 @@ design intentions into limits that hold even if code is wrong:
     (unsafe_code = "forbid", no unwrap/panic, no Command::new, no std::net)
   * only logbook-exec may allow clippy::disallowed_methods; no crate may
     allow clippy::disallowed_types
-  * the programs are exactly the four known ones, and each calls
-    logbook_guard::deny_network() as the first statement of main (F-L02)
+  * the programs are exactly the four known ones, and each blocks the
+    network as the very first statement of main, ending if that fails
+    (F-L02), in exactly this form:
+
+        fn main() -> ExitCode {
+            if let Err(e) = logbook_guard::deny_network(PROFILE) {
+                eprintln!(…);
+                return ExitCode::FAILURE;
+            }
+
+    with `const PROFILE: logbook_guard::Profile = logbook_guard::Profile::…;`
+    NoSockets for logbook-mcp, LocalSockets for the others. A `let _ =` that
+    throws the guard's error away, a block that goes on instead of ending, or
+    a local `logbook_guard` that shadows the real crate fails the check.
 
 "Reach" means directly or through other Logbook crates. Dev-dependencies
 (tests only) are not counted: they are not built into the programs.
@@ -43,6 +55,18 @@ PROGRAMS = {
     "logbook-mcp": "logbook-mcp",
     "logbook-gtk": "logbook-gtk",
 }
+# The socket profile each program must declare (F-L02): logbook-mcp talks only
+# through its standard input and output, so it gets no socket at all.
+PROFILES = {
+    "logbook-collector": "LocalSockets",
+    "logbook-cli": "LocalSockets",
+    "logbook-mcp": "NoSockets",
+    "logbook-gtk": "LocalSockets",
+}
+MAIN_SIGNATURE = "fn main() -> ExitCode {"
+GUARD_FIRST = "if let Err(e) = logbook_guard::deny_network(PROFILE) {"
+GUARD_END = "return ExitCode::FAILURE;"
+SHADOW = re.compile(r"\bmod\s+logbook_guard\b|\bas\s+logbook_guard\b|\bextern\s+crate\b[^;]*\blogbook_guard\b")
 ALLOW_METHODS_ONLY_IN = {"logbook-exec"}
 ALLOW_ATTR = re.compile(r"#!?\[\s*(?:allow|expect)\s*\(([^\]]*)\]")
 
@@ -123,9 +147,7 @@ def main():
             problems.append(f"{name}: programs {sorted(bins)} but expected {sorted(expected)}")
         if name in PROGRAMS:
             main_rs = path / "src" / "main.rs"
-            first = first_statement_of_main(main_rs) if main_rs.exists() else None
-            if first is None or "logbook_guard::deny_network()" not in first:
-                problems.append(f"{name}: the first statement of main must call logbook_guard::deny_network() (found: {first!r})")
+            problems.extend(f"{name}: {p}" for p in guard_problems(main_rs, PROFILES[name]))
 
     if problems:
         print("Architecture check failed:")
@@ -136,17 +158,93 @@ def main():
     return 0
 
 
-def first_statement_of_main(path):
-    """The first line of code inside `fn main`, comments and blank lines skipped."""
-    lines = path.read_text(encoding="utf-8").splitlines()
-    for i, line in enumerate(lines):
-        if re.match(r"\s*fn\s+main\s*\(", line):
-            rest = line.split("{", 1)[1] if "{" in line else ""
-            for candidate in [rest] + lines[i + 1:]:
-                s = candidate.strip()
-                if s and not s.startswith("//"):
-                    return s
-    return None
+def strip_code(text):
+    """The source with comments removed and the contents of string literals
+    emptied, line breaks kept: what the compiler sees as code. Without this
+    a correct-looking main inside a comment or a string could stand in for
+    the real one."""
+    out, i, n = [], 0, len(text)
+    while i < n:
+        if text.startswith("/*", i):                       # block comment, nested
+            depth, i = 1, i + 2
+            while i < n and depth:
+                if text.startswith("/*", i):
+                    depth, i = depth + 1, i + 2
+                elif text.startswith("*/", i):
+                    depth, i = depth - 1, i + 2
+                else:
+                    out.append("\n" if text[i] == "\n" else "")
+                    i += 1
+            continue
+        if text.startswith("//", i):                       # line comment
+            j = text.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        raw = re.match(r'b?r(#*)"', text[i:])
+        if raw and (i == 0 or not (text[i - 1].isalnum() or text[i - 1] == "_")):   # raw string
+            close = '"' + raw.group(1)
+            j = text.find(close, i + raw.end())
+            j = n if j < 0 else j + len(close)
+            out.append('""' + "\n" * text.count("\n", i, j))
+            i = j
+            continue
+        if text.startswith("'\"'", i) or text.startswith("'\\\"'", i):   # the char '"'
+            i += 3 if text[i + 1] == '"' else 4
+            out.append("' '")
+            continue
+        if text[i] == '"':                                 # string
+            j = i + 1
+            while j < n and text[j] != '"':
+                j += 2 if text[j] == "\\" else 1
+            out.append('""' + "\n" * text.count("\n", i, j))
+            i = j + 1
+            continue
+        out.append(text[i])
+        i += 1
+    return "".join(out)
+
+
+def code_lines(code):
+    """The non-blank lines of stripped code, without their indentation."""
+    return [l.strip() for l in code.splitlines() if l.strip()]
+
+
+def guard_problems(main_rs, profile):
+    """What is wrong with a program's network block (F-L02), as a list."""
+    if not main_rs.exists():
+        return ["src/main.rs is missing"]
+    code = strip_code(main_rs.read_text(encoding="utf-8"))
+    lines = code_lines(code)
+    problems = []
+    want = f"const PROFILE: logbook_guard::Profile = logbook_guard::Profile::{profile};"
+    declared = [l for l in lines if re.match(r"(pub(\([^)]*\))?\s+)?(const|static)\s+PROFILE\b", l)]
+    if declared != [want]:
+        problems.append(f"the profile must be declared once as `{want}` (found: {declared!r})")
+    for l in lines:
+        if l.startswith("let _ =") and "deny_network" in l:
+            problems.append(f"the guard's error must end the program, not be thrown away: {l!r}")
+    if SHADOW.search(code):
+        problems.append("a local logbook_guard would shadow the real crate")
+    # Exactly one main in the whole file, at the left margin: a second one
+    # (in a test module, say) could be the one the check reads.
+    mains = len(re.findall(r"\bfn\s+main\b", code))
+    if mains != 1 or MAIN_SIGNATURE not in [l.rstrip() for l in code.splitlines()]:
+        return problems + [f"main must be declared exactly once, unindented, as `{MAIN_SIGNATURE}` (found {mains})"]
+    body = lines[lines.index(MAIN_SIGNATURE) + 1:]
+    if not body or body[0] != GUARD_FIRST:
+        found = body[0] if body else None
+        return problems + [f"the first statement of main must be `{GUARD_FIRST}` (found: {found!r})"]
+    # The guard's block: up to its closing brace, ending the program.
+    block = []
+    for l in body[1:]:
+        if l == "}":
+            break
+        block.append(l)
+    else:
+        return problems + ["the guard's block in main isn't closed"]
+    if not block or block[-1] != GUARD_END or any("return" in l for l in block[:-1]):
+        problems.append(f"the guard's block must end with `{GUARD_END}` (found: {block!r})")
+    return problems
 
 
 if __name__ == "__main__":

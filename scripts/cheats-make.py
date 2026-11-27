@@ -20,6 +20,9 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 MODEL = "crates/logbook-model/src/lib.rs"
 GUARD = "crates/logbook-guard/src/lib.rs"
+# The guard's fail-closed test (L02.2), from its doc comment to the next test.
+GUARD_TEST_DOC = "    /// L02.2, fail-closed: if the filter can't cover every thread, the guard\n"
+GUARD_TEST_FN = "    fn l02_2_deny_network_fails_closed_when_a_thread_cannot_be_covered() {\n"
 
 
 def append(path, text):
@@ -32,6 +35,17 @@ def sub(path, old, new, count=1):
         if old not in t:
             raise SystemExit(f"{path}: {old!r} not found")
         (ws / path).write_text(t.replace(old, new, count))
+    return f
+
+
+def cut(path, start, end):
+    """Removes the text from `start` up to (not including) `end`."""
+    def f(ws):
+        t = (ws / path).read_text()
+        if start not in t or end not in t:
+            raise SystemExit(f"{path}: {start!r} or {end!r} not found")
+        a = t.index(start)
+        (ws / path).write_text(t[:a] + t[t.index(end, a):])
     return f
 
 
@@ -51,13 +65,15 @@ CHEATS = [
     ("allow-lint", "owner", "switch a lint off with #[allow(clippy::unwrap_used)]",
      append(MODEL, "\n#[allow(clippy::unwrap_used)]\npub fn first(v: &[u8]) -> u8 {\n    *v.first().unwrap()\n}\n")),
     ("delete-guard-test", "owner", "delete the network guard's test",
-     sub(GUARD, "    /// Until the real block exists, the guard must refuse rather than pretend.\n    #[test]\n    fn deny_network_fails_closed_until_implemented() {\n        assert!(deny_network().is_err());\n    }\n", "")),
+     cut(GUARD, GUARD_TEST_DOC, "    /// The reason reaches the user")),
     ("guard-test-returns-early", "owner", "make the guard's test pass without checking anything",
-     sub(GUARD, "        assert!(deny_network().is_err());", "        return;\n        #[allow(unreachable_code)]\n        assert!(deny_network().is_err());")),
+     sub(GUARD, GUARD_TEST_FN, GUARD_TEST_FN + "        return;\n        #[allow(unreachable_code)]\n")),
     ("rename-guard-test", "owner", "rename the guard's test so it no longer matches what it proved",
-     sub(GUARD, "fn deny_network_fails_closed_until_implemented", "fn deny_network_works")),
+     sub(GUARD, "fn l02_2_deny_network_fails_closed_when_a_thread_cannot_be_covered", "fn deny_network_works")),
     ("guard-pretends", "owner", "the network guard pretends to succeed",
-     sub(GUARD, "    Err(GuardError(\n        \"the network block is not implemented yet, so Logbook refuses to run\",\n    ))", "    Ok(())")),
+     sub(GUARD, "    seccompiler::apply_filter_all_threads(&program)\n"
+                "        .map_err(|e| GuardError(format!(\"the network block couldn't be installed: {e}\")))?;\n",
+         "    let _ = program;\n")),
     ("claim-due-later", "owner", "move a security claim out of its step and to a later milestone so it isn't due",
      sub("verify/claims.toml", 'id = "L02.2"\nstep = 3\nfunction = "F-L02"\ndue = "0.1a"', 'id = "L02.2"\nfunction = "F-L02"\ndue = "1.0"')),
     ("delete-break", "owner", "delete a break from the break list",

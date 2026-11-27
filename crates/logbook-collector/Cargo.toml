@@ -12,6 +12,9 @@ logbook-guard.workspace = true
 # The collector is the store's only writer (F-D04); it uses it from step 8.
 logbook-store-write.workspace = true
 
+[dev-dependencies]
+rustix = { workspace = true, features = ["net"] }
+
 [lints]
 workspace = true
 

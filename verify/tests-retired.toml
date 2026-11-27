@@ -11,3 +11,14 @@
 #   test = "tests::name_of_the_test"
 #   count = 1        # how many tests of that name (one per crate), default 1
 #   reason = "why what it checked is no longer true"
+
+# 0.1a step 3: the network block exists, so the Phase 0 stubs' premise is gone.
+[[retired]]
+test = "tests::deny_network_fails_closed_until_implemented"
+count = 1
+reason = "deny_network is implemented in step 3; failing closed is now proven by tests::l02_2_deny_network_fails_closed_when_a_thread_cannot_be_covered"
+
+[[retired]]
+test = "tests::refuses_to_run_without_the_network_block"
+count = 4
+reason = "each program's main now applies the real network block; spec_step3::l02_2_the_program_blocks_the_network_first proves its profile in each program, and the architecture check its exact first statement"

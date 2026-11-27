@@ -57,11 +57,51 @@ expect_fail "a reader allows starting programs itself"
 fresh; printf '#[expect(clippy::disallowed_types)]\nfn x() {}\n' >> "$SCRATCH/ws/crates/logbook-exec/src/lib.rs"
 expect_fail "a crate allows std::net"
 
-fresh; sed -i 's/^    if let Err(e) = logbook_guard::deny_network() {$/    eprintln!("start");\n&/' "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
+fresh; sed -i 's/^    if let Err(e) = logbook_guard::deny_network(PROFILE) {$/    eprintln!("start");\n&/' "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
 expect_fail "the AI interface does something before blocking the network"
 
-fresh; sed -i 's/logbook_guard::deny_network()/logbook_guard::deny_nothing()/' "$SCRATCH/ws/crates/logbook-gtk/src/main.rs"
+fresh; sed -i 's/logbook_guard::deny_network(PROFILE)/logbook_guard::deny_nothing(PROFILE)/' "$SCRATCH/ws/crates/logbook-gtk/src/main.rs"
 expect_fail "the window doesn't call the network block"
+
+fresh; sed -i 's/^    if let Err(e) = logbook_guard::deny_network(PROFILE) {$/    let _ = logbook_guard::deny_network(PROFILE);\n    if let Err(e) = logbook_guard::deny_network(PROFILE) {/' "$SCRATCH/ws/crates/logbook-cli/src/main.rs"
+expect_fail "the terminal command throws the guard's error away first (let _ =)"
+
+fresh; sed -i 's/^        return ExitCode::FAILURE;$/        eprintln!("going on anyway");/' "$SCRATCH/ws/crates/logbook-collector/src/main.rs"
+expect_fail "the collector goes on when the network block fails"
+
+fresh; sed -i 's/^        return ExitCode::FAILURE;$/        return ExitCode::SUCCESS;/' "$SCRATCH/ws/crates/logbook-gtk/src/main.rs"
+expect_fail "the window ends as a success when the network block fails"
+
+fresh; sed -i 's/Profile::NoSockets;/Profile::LocalSockets;/' "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
+expect_fail "the AI interface may open local sockets"
+
+fresh; sed -i 's/Profile::LocalSockets;/Profile::NoSockets;/' "$SCRATCH/ws/crates/logbook-cli/src/main.rs"
+expect_fail "a program other than the AI interface has the wrong profile"
+
+fresh; sed -i 's/^const PROFILE: .*$/const PROFILE: logbook_guard::Profile = OTHER;/' "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
+expect_fail "the AI interface's profile comes from elsewhere"
+
+fresh; printf '\nmod logbook_guard {\n    pub fn deny_network(_: super::logbook_guard_real::Profile) -> Result<(), String> { Ok(()) }\n}\n' >> "$SCRATCH/ws/crates/logbook-collector/src/main.rs"
+expect_fail "the collector shadows the guard with a module of its own"
+
+fresh; sed -i 's/^fn main() -> ExitCode {$/fn main() -> ExitCode {\n    real_main()\n}\n\nfn real_main() -> ExitCode {/' "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
+expect_fail "the AI interface's main hands over before the guard"
+
+# A correct-looking guarded main where the compiler doesn't see it, and the
+# real main without the guard.
+unguard() { # crate: the real main loses its guard and its signature changes
+    sed -i 's/^fn main() -> ExitCode {$/fn main() -> std::process::ExitCode {/; s/^    if let Err(e) = logbook_guard::deny_network(PROFILE) {$/    if let Err(e) = Ok::<(), String>(()) {/' "$SCRATCH/ws/crates/$1/src/main.rs"
+}
+decoy='fn main() -> ExitCode {\n    if let Err(e) = logbook_guard::deny_network(PROFILE) {\n        eprintln!("{e}");\n        return ExitCode::FAILURE;\n    }\n    ExitCode::SUCCESS\n}\n'
+
+fresh; unguard logbook-mcp; printf "\n/*\n$decoy*/\n" >> "$SCRATCH/ws/crates/logbook-mcp/src/main.rs"
+expect_fail "the AI interface's guarded main is only a comment"
+
+fresh; unguard logbook-collector; printf "\n#[cfg(test)]\nmod decoy {\n    use std::process::ExitCode;\n$decoy}\n" >> "$SCRATCH/ws/crates/logbook-collector/src/main.rs"
+expect_fail "the collector's guarded main is a decoy in a test module"
+
+fresh; unguard logbook-gtk; printf "\nconst DECOY: &str = r#\"\n$decoy\"#;\n" >> "$SCRATCH/ws/crates/logbook-gtk/src/main.rs"
+expect_fail "the window's guarded main is only a string"
 
 fresh; mkdir -p "$SCRATCH/ws/crates/logbook-extra/src"
 printf '[package]\nname = "logbook-extra"\nversion = "0.0.0"\nedition = "2021"\n' > "$SCRATCH/ws/crates/logbook-extra/Cargo.toml"

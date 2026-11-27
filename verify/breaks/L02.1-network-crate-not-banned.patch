@@ -1,0 +1,16 @@
+Claim: L02.1
+Break: deny.toml stops banning an HTTP crate
+Caught-by: test
+
+diff --git a/deny.toml b/deny.toml
+index 39f066e..80953d7 100644
+--- a/deny.toml
++++ b/deny.toml
+@@ -35,7 +35,6 @@ allow-wildcard-paths = true
+ deny = [
+     # No network (F-L02): HTTP clients and servers, TLS.
+     { crate = "reqwest" },
+-    { crate = "hyper" },
+     { crate = "hyper-util" },
+     { crate = "h2" },
+     { crate = "ureq" },

@@ -1,0 +1,17 @@
+Claim: L03.1
+Break: a reader starts a program itself with std::process::Command
+Caught-by: test
+
+diff --git a/crates/logbook-readers/src/lib.rs b/crates/logbook-readers/src/lib.rs
+index 19777f6..eb5584f 100644
+--- a/crates/logbook-readers/src/lib.rs
++++ b/crates/logbook-readers/src/lib.rs
+@@ -2,3 +2,8 @@
+ //!
+ //! Phase 0: empty. The claims this crate must prove are in verify/claims.toml
+ //! (step P2); no code is added before its claims are approved (build plan, V15).
++
++/// Which package a file belongs to, asked of pacman directly.
++pub fn package_of(path: &str) -> std::io::Result<std::process::Output> {
++    std::process::Command::new("pacman").args(["-Qo", path]).output()
++}
