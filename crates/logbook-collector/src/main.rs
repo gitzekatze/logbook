@@ -26,3 +26,20 @@ fn main() -> ExitCode {
 #[rustfmt::skip]
 #[path = "../../../verify/spec/step3/program_spec.rs"]
 mod spec_step3;
+
+#[cfg(test)]
+mod tests {
+    use std::process::ExitCode;
+
+    /// L02.2: main blocks the network, then, until the program is built,
+    /// says so and ends with a failure, never as a success. (ExitCode can't
+    /// be compared directly, so its debug form is.)
+    #[test]
+    fn l02_2_main_blocks_the_network_and_ends_until_built() {
+        assert_eq!(
+            format!("{:?}", super::main()),
+            format!("{:?}", ExitCode::FAILURE)
+        );
+        assert!(logbook_guard::network_blocked());
+    }
+}

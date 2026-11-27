@@ -22,8 +22,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use landlock::{
-    path_beneath_rules, Access, AccessFs, BitFlags, LandlockStatus, RestrictSelfAttr, Ruleset,
-    RulesetAttr, RulesetCreatedAttr, RulesetStatus, ABI,
+    make_bitflags, path_beneath_rules, Access, AccessFs, BitFlags, LandlockStatus,
+    RestrictSelfAttr, Ruleset, RulesetAttr, RulesetCreatedAttr, RulesetStatus, ABI,
 };
 
 /// Why a guard could not be applied. Every Logbook program prints it and
@@ -257,10 +257,13 @@ pub fn restrict_files(access: &FileAccess) -> Result<FileLimit, GuardError> {
 /// includes it, so reading is spelled out here, and writing gets every
 /// right but that one.
 fn rights(abi: ABI) -> [BitFlags<AccessFs>; 3] {
-    let read = AccessFs::ReadFile | AccessFs::ReadDir;
+    // Spelled as flag sets, not with `|`: for flags that don't overlap, `|`
+    // and `^` give the same set, a difference no test could ever show.
+    let read = make_bitflags!(AccessFs::{ReadFile | ReadDir});
+    let execute = make_bitflags!(AccessFs::{ReadFile | ReadDir | Execute});
     let mut write = AccessFs::from_all(abi);
     write.remove(AccessFs::Execute);
-    [read, read | AccessFs::Execute, write]
+    [read, execute, write]
 }
 
 /// What the kernel's answer means for [`FileLimit`]: never more than the
