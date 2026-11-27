@@ -192,7 +192,13 @@ def reasons_for(repo, base, head, base_tests=None, head_tests=None):
 
     # 4. tests lost; a retired one is named too (its list is protected, item 1)
     if base_tests and head_tests:
-        lost, retired = lost_tests(repo, base, head, base_tests, head_tests)
+        try:
+            lost, retired = lost_tests(repo, base, head, base_tests, head_tests)
+        except (ValueError, tomllib.TOMLDecodeError) as e:
+            # Nothing is retired by a list that can't be read: every
+            # missing test counts as lost, and the owner sees why.
+            reasons.append(f"{RETIRED} can't be read, so it retires nothing: {e}")
+            lost, retired = passed_tests(base_tests) - passed_tests(head_tests), []
         for name in sorted(lost.elements()):
             reasons.append(f"test passed before but doesn't run and pass now: {name}")
         for name, why in retired:
