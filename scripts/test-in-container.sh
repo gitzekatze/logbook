@@ -17,10 +17,16 @@
 #     desktop's), an ordinary user inside;
 #   - the worktree is mounted read-only and copied in, so nothing a test
 #     writes (saved proptest cases included) reaches it;
-#   - a memory cap with no swap (LOGBOOK_TEST_MEMORY, default 10G) through a
-#     systemd scope, so a runaway test can't starve the desktop;
+#   - a memory cap with no swap (LOGBOOK_TEST_MEMORY, default 10G) on the
+#     container itself (podman --memory; rootless podman runs the container
+#     outside the calling scope, so a scope limit alone wouldn't reach it),
+#     so a runaway test can't starve the desktop;
 #   - no network while COMMAND runs: the dependencies are fetched first, in a
-#     separate step that runs nothing but `cargo fetch --locked`.
+#     separate step that runs nothing but `cargo fetch --locked`, with the
+#     worktree's own cargo and toolchain settings (.cargo/, rust-toolchain*)
+#     left out, so no code from the worktree runs while there is network;
+#   - the downloaded crates are read-only while COMMAND runs, so a test
+#     can't change the sources other worktrees build from.
 # seccomp=unconfined: the tests install their own seccomp filter and need
 # io_uring and Landlock, which podman's default filter refuses; the
 # container's other limits stay.
@@ -50,25 +56,32 @@ if ! podman image exists "$image"; then
 fi
 mkdir -p "$cache/registry" "$cache/target-$name"
 
-# in_container NETWORK SCRIPT [ARG ...]: runs SCRIPT with sh in a fresh copy
-# of the worktree (/tmp/w), with ARG as its "$@".
+# in_container NETWORK REGISTRY EXCLUDES SCRIPT [ARG ...]: runs SCRIPT with
+# sh in a fresh copy of the worktree (/tmp/w) without the paths in EXCLUDES,
+# with ARG as its "$@" and the crate cache mounted REGISTRY (rw or ro).
 in_container() {
     network=$1
-    script=$2
-    shift 2
-    systemd-run --user --scope -q -p MemoryMax="$memory" -p MemorySwapMax=0 \
-      podman run --rm --init --userns=keep-id --network="$network" \
+    registry=$2
+    excludes=$3
+    script=$4
+    shift 4
+    podman run --rm --init --userns=keep-id --network="$network" \
+        --memory="$memory" --memory-swap="$memory" \
         --security-opt seccomp=unconfined --security-opt label=disable \
         -e CARGO_TARGET_DIR=/cache/target -e CARGO_BUILD_JOBS="$jobs" -e TMPDIR=/tmp \
+        -e EXCLUDES="$excludes" \
         -v "$wt:/src:ro" \
-        -v "$cache/registry:/home/tester/.cargo/registry" \
+        -v "$cache/registry:/home/tester/.cargo/registry:$registry" \
         -v "$cache/target-$name:/cache/target" \
         "$image" sh -c '
-          mkdir /tmp/w && tar -C /src --exclude=./target --exclude=./.git -cf - . | tar -C /tmp/w -xf - &&
+          set -f
+          mkdir /tmp/w && tar -C /src --exclude=./target --exclude=./.git $EXCLUDES -cf - . | tar -C /tmp/w -xf - &&
           cd /tmp/w && '"$script" sh "$@"
 }
 
-# 1. The dependencies, with network, running nothing but cargo fetch.
-in_container pasta 'exec cargo fetch --locked -q'
-# 2. The command, without network.
-in_container none 'CARGO_NET_OFFLINE=true exec "$@"' "$@"
+# 1. The dependencies, with network, running nothing but cargo fetch, and
+#    nothing from the worktree that could change which programs cargo runs.
+in_container pasta rw "--exclude=./.cargo --exclude=./rust-toolchain --exclude=./rust-toolchain.toml" \
+    'RUSTC_WRAPPER= CARGO_BUILD_RUSTC_WRAPPER= RUSTUP_TOOLCHAIN=stable exec cargo fetch --locked -q'
+# 2. The command, without network, the crates read-only.
+in_container none ro "" 'CARGO_NET_OFFLINE=true exec "$@"' "$@"
