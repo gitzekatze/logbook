@@ -80,7 +80,11 @@ jobs:
             mkdir -p "target/mutants/$c"
             # Every test of the workspace judges each mutant: a crate is often
             # tested by another one's spec (the model by the store's, for example).
-            cargo mutants --package "$c" --test-workspace=true --jobs 3 --output "target/mutants/$c"
+            # No jobserver: its pipes are handed to every test process without
+            # close-on-exec, so programs started by logbook-exec would inherit
+            # them, and the exec spec (no open file but 0, 1, 2) would fail
+            # on the unchanged code.
+            cargo mutants --package "$c" --test-workspace=true --jobs 3 --jobserver=false --output "target/mutants/$c"
             rc=$?
             set -e
             # 0 all caught, 2 some missed, 3 some timed out: the check below judges.
